@@ -44,4 +44,5 @@ export enum IMG_TYPE {
     SYMBOL = 0,
     EXCHANGE = 1,
     ETC = 2,
-}
+    NONE = 4
+} 
