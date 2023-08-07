@@ -132,7 +132,8 @@ const CoinPriceTable: React.FC = () => {
         setRowData([...dataTableRef.current])
       }
       setIsLoading(false);
-      // gridRef?.current?.api?.hideOverlay();
+      gridRef?.current?.api?.sizeColumnsToFit();
+      gridRef?.current?.api?.hideOverlay();
     })
     wsRef.current.set(EXCHANGE.UPBIT, ws);
   }
