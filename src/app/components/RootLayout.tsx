@@ -13,15 +13,14 @@ export default function RootLayout({ children }: PropsWithChildren) {
   
   const [messageApi, contextHolder] = message.useMessage();
   return (
-        
-              <Layout className="layout" style={{ minHeight: "100vh", display: 'flex', flexDirection:'column'}}>
-                {contextHolder}
-                <HeaderComp />                
-                <Content style={{ padding: '0px 50px', paddingTop: "20px", display: "flex", flexDirection:'column', flex: 1}}>
-                  <div className="site-layout-content" style={{display: "flex", flex: 1}}>
-                    {children}
-                  </div>
-                </Content>
-                <FooterComp />
-              </Layout>)
+    <Layout className="layout" style={{ minHeight: "100vh", display: 'flex', flexDirection:'column'}}>
+      {contextHolder}
+      <HeaderComp />                
+      <Content style={{ padding: '0px 50px', paddingTop: "20px", display: "flex", flexDirection:'column', flex: 1}}>
+        <div className="site-layout-content" style={{display: "flex", flex: 1}}>
+          {children}
+        </div>
+      </Content>
+      <FooterComp />
+    </Layout>)
 }

@@ -11,10 +11,10 @@ export const CoinChangePrice = (props: any) => {
     useEffect(() => {
         let change = props?.data?.change? props?.data?.change: props?.data?.change_24h;
         let changeRate = props?.data?.changeRate? props?.data?.changeRate: props?.data?.changeRate_24h ?? 0
-        setColor(changeRate >= 0 ? 'red': 'blue')
-        setChangeRate(`${removeTrailingZeros(changeRate, 2)}%`)
+        setColor(changeRate >= 0 ? '#f23645': '#089981')
+        setChangeRate(`${changeRate.toFixed(2)}%`)
         setChange(removeTrailingZeros(change))
-    }, [props])
+    }, [props?.data?.change, props?.data?.changeRate, props?.data?.changeRate_24h, props?.data?.change_24h])
     if (!props.data) return null;
 
     return (

@@ -8,8 +8,13 @@ export const CoinVolume = (props: any) => {
 
     useEffect(() => {
         let volume = props?.data?.accTradePrice_24h ?? 0;
-        setVolume(parseInt(volume).toLocaleString())
-    }, [props])
+        if (volume >= 100) {
+            setVolume(parseInt(volume).toLocaleString())
+        } else {
+            setVolume(removeTrailingZeros(volume))
+        }
+        
+    }, [props?.data.accTradePrice_24, props?.data?.accTradePrice_24h])
     if (!props.data) return null;
 
     return (

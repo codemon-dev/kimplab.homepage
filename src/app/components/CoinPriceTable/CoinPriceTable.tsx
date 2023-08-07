@@ -17,6 +17,7 @@ import CoinChangePrice from './CoinChangePrice';
 import CoinPrice from './CoinPrice';
 import CoinVolume from './CoinVolume';
 import { Spin } from 'antd';
+import LoadingComp from '../LoadingComp';
 
 interface DataType {
   id: string;
@@ -44,21 +45,22 @@ const CoinPriceTable: React.FC = () => {
   const {getInitialInfo, startWebsocket} = useExchange()
   const [isLoading, setIsLoading] = useState(true);
   const [rowData, setRowData] = useState<DataType[]>([]);
-  const exchangeRef = useRef<EXCHANGE>(EXCHANGE.UPBIT)
+  const selExchangeRef = useRef<EXCHANGE>(EXCHANGE.UPBIT)
   const dataTableRef = useRef<DataType[]>([])  
-  const exchangeTickersMapRef = useRef<Map<EXCHANGE, ICoinGeckoExhcnageTicker>>(new Map<EXCHANGE, ICoinGeckoExhcnageTicker>())
-  const wsRef = useRef<any>()
+  const wsRef = useRef<Map<EXCHANGE, any>>(new Map<EXCHANGE, any>())
   const gridRef = useRef<any>();
+  const isMountRef = useRef(false)
   
   const columnDefs: any = [
-    { headerName: '이름', field: 'symbol', minWidth: 100, cellRenderer: CoinTitle, getQuickFilterText: (params: any) => { return params?.data?.symbol }},
-    { headerName: '가격', field: 'price', minWidth: 100, headerClass: 'ag-header-right', cellRenderer: CoinPrice },
-    { headerName: '변동', field: 'change', minWidth: 100, headerClass: 'ag-header-right', cellRenderer: CoinChangePrice},    
-    { headerName: '볼륨(24H)', field: 'accTradePrice_24h', minWidth: 100, headerClass: 'ag-header-right', cellRenderer: CoinVolume},
-    { headerName: '관심코인', field: 'favorite', minWidth: 50, headerClass: 'ag-header-center', cellRenderer: Favorite},
+    { headerName: '이름', field: 'symbol', minWidth: 150, cellRenderer: CoinTitle, getQuickFilterText: (params: any) => { return params?.data?.symbol }},
+    { headerName: '현재가격', field: 'price', minWidth: 120, headerClass: 'ag-header-right', cellRenderer: CoinPrice },
+    { headerName: '가격변동', field: 'changeRate', minWidth: 100, headerClass: 'ag-header-right', cellRenderer: CoinChangePrice},    
+    { headerName: '누적거래량', field: 'accTradePrice_24h', minWidth: 120, headerClass: 'ag-header-right', cellRenderer: CoinVolume},
+    { headerName: '관심코인', field: 'favorite', minWidth: 100, headerClass: 'ag-header-center', cellRenderer: Favorite},
   ];
 
   const onGridReady = useCallback(() => {
+    gridRef?.current?.api?.showLoadingOverlay();
     setRowData(dataTableRef.current);
     gridRef?.current?.api?.sizeColumnsToFit();
     window.onresize = () => {
@@ -67,18 +69,26 @@ const CoinPriceTable: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    if (isMountRef.current === true) {
+      return;
+    }
+    isMountRef.current = true;
     initialize();
     return () => {
       try {
-        wsRef.current?.close()
+        wsRef.current.forEach((ws: any, key: EXCHANGE) => {
+          console.log("close websocket. exchange: ", key);
+          ws?.close()
+        })        
       } catch {}
+      isMountRef.current = false
     }
   }, [])
 
   const initialize = async () => {
     await getInitialInfo();
     let exchangeTickers: any = await coinGecko_getExchangeTickers(EXCHANGE.UPBIT);
-    wsRef.current = await startWebsocket(WS_TYPE.UPBIT_TICKER, (aggTradeInfo: IAggTradeInfo) => {
+    const ws = await startWebsocket(WS_TYPE.UPBIT_TICKER, (aggTradeInfo: IAggTradeInfo) => {
       let index = dataTableRef.current.findIndex((data: DataType) => {
         return (data.coinPair === aggTradeInfo.coinPair && data.exchange === aggTradeInfo.exchange && data.market === aggTradeInfo.market)
       })
@@ -122,7 +132,9 @@ const CoinPriceTable: React.FC = () => {
         setRowData([...dataTableRef.current])
       }
       setIsLoading(false);
+      // gridRef?.current?.api?.hideOverlay();
     })
+    wsRef.current.set(EXCHANGE.UPBIT, ws);
   }
 
   const onFilterTextBoxChanged = useCallback(() => {
@@ -144,33 +156,31 @@ const CoinPriceTable: React.FC = () => {
     return null;
   }
 
-  return (
-    <div style={{ width: '100%', height: '100%'}}>
-      <div className="example-wrapper">
-        <div className="example-header">
-          <input
-            type="text"
-            id="filter-text-box"
-            placeholder="Filter..."
-            onInput={onFilterTextBoxChanged}
+  return (    
+    <div style={{display: "flex", flexDirection: "column", height: "100%", width: "100%"}}>
+      <div className="header-root">
+        <input
+          type="text"
+          id="filter-text-box"
+          placeholder="Filter..."
+          onInput={onFilterTextBoxChanged}
+        />
+      </div>
+      <div style={{height: "100%", width: "100%"}} className="ag-theme-alpine">
+          <AgGridReact
+              ref={gridRef}
+              rowData={rowData}
+              columnDefs={columnDefs}
+              defaultColDef={{ sortable: true, resizable: false }}
+              cacheQuickFilter={true}
+              onGridReady={onGridReady}
+              getRowId={getRowId}
+              rowHeight={50}
+              rowBuffer={50}
+              className='myGrid'
+              loadingOverlayComponent={LoadingComp}
           />
         </div>
-        <Spin spinning={isLoading} size="large">
-          <div style={{height: '800px', width: '100%'}} className="ag-theme-alpine">
-            <AgGridReact
-                ref={gridRef}
-                rowData={rowData}
-                columnDefs={columnDefs}
-                defaultColDef={{ sortable: true, resizable: false }}
-                cacheQuickFilter={true}
-                onGridReady={onGridReady}
-                getRowId={getRowId}
-                rowHeight={50}
-                rowBuffer={50}
-            />
-          </div>
-        </Spin> 
-      </div>
     </div>
   );
 };

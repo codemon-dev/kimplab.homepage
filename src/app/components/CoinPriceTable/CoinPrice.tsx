@@ -1,5 +1,4 @@
 import { removeTrailingZeros } from '@/app/helper/cryptoHelper';
-import { ASK_BID } from '@/config/enum';
 import { Typography } from 'antd';
 import React, { useState, useEffect } from 'react';
 const { Title } = Typography;
@@ -10,9 +9,10 @@ export const CoinPrice = (props: any) => {
 
     useEffect(() => {
         let price = props?.data?.price ?? 0;
-        setColor(props?.data?.askBid === ASK_BID.BID ? 'red': 'blue')
+        let changeRate = props?.data?.changeRate? props?.data?.changeRate: props?.data?.changeRate_24h ?? 0
+        setColor(changeRate >= 0 ? '#f23645': '#089981')
         setPrice(removeTrailingZeros(price))
-    }, [props])
+    }, [props?.data?.changeRate, props?.data?.changeRate_24h, props?.data?.price])
     if (!props.data) return null;
 
     return (

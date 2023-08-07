@@ -1,22 +1,27 @@
-.example-wrapper {
+.table-root {
     display: flex;
     flex-direction: column;
     height: 100%;
-  }
-  
-#myGrid {
+}
+
+.grid-wrapper {
   flex: 1 1 0px;
   width: 100%;
 }
+  
+#myGrid {
+  height: 100%;
+  width: 100%;
+}
 
-.example-header {
+.header-root {
   font-family: Verdana, Geneva, Tahoma, sans-serif;
   font-size: 13px;
   margin-bottom: 5px;
 }
 
 .ag-theme-alpine {
-  --ag-value-change-value-highlight-background-color: rgba(108, 185, 221, 0.5);
+  --ag-value-change-value-highlight-background-color: rgba(108, 185, 221, 0.2);
 }
 
 .ag-header-right {
