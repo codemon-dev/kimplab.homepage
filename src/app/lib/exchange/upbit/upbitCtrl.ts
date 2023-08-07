@@ -59,6 +59,98 @@ export const isPongResponse = (object: any): object is UPBIT_PONG_RESPONSE => {
     return 'status' in object;
 }
 
+export const startTickerWebsocket = (coinPairs: string[], listener: any) => {
+    const format = 'SIMPLE'
+    let ws: ReconnectingWebSocket | undefined;
+    let payload: UpbitSocketPayload = {
+        type: 'ticker',
+        codes: coinPairs,
+        isOnlySnapshot: false,
+        isOnlyRealtime: false,
+    }
+    
+    const options = {
+        WebSocket: WebSocket,
+        maxReconnectionDelay: 10000,
+        minReconnectionDelay: 1000 + Math.random() * 4000,
+        reconnectionDelayGrowFactor: 1.3,
+        minUptime: 5000,
+        connectionTimeout: 4000,
+        maxRetries: Infinity,
+        maxEnqueuedMessages: Infinity,
+        startClosed: false,
+        debug: false,
+    };
+    
+    const UUID = uuidv4()
+    let ticket: string = ""
+    ticket = UUID + (ticket? `-${ticket}`: "");    
+    ws?.close();
+    ws = new ReconnectingWebSocket(urlProvider, [], options);
+    ws.addEventListener('message',  (payload) => {
+        try {
+            payload.data.text().then((obj: any) => {
+                const response: UpbitSocketSimpleResponse | UPBIT_PONG_RESPONSE = {...(JSON.parse(obj))};
+                if (isPongResponse(response) === true) {
+                    console.log("pong. ", response);
+                } else {
+                    const res: UpbitSocketSimpleResponse = {...response as UpbitSocketSimpleResponse};
+                    // if (res.st === "SNAPSHOT") {
+                    //     console.log("res. ", res);
+                    // }
+                    const {symbol, coinPair, market} = parseCoinInfoFromCoinPair(EXCHANGE.UPBIT, res.cd)
+                    let aggTradeInfo: IAggTradeInfo = {
+                        exchange: EXCHANGE.UPBIT,
+                        market: market as MARKET,
+                        symbol: symbol,
+                        coinPair: coinPair,
+                        price: res.tp,
+                        accVolume: res.atv,
+                        accVolume_24h: res.atv24h,
+                        accTradePrice: res.atp,
+                        accTradePrice_24h: res.atp24h,
+                        preClosingPrice: res.pcp,
+                        askBid: res.ab === "ASK"? ASK_BID.ASK: ASK_BID.BID,    
+                        change: res.scp,
+                        changeRate: res.scr * 100,
+                        timestamp: res.ttms
+                    }
+                    listener(aggTradeInfo);
+                }
+            })
+        }
+        catch (err) {
+            console.log("err:" , err)
+        }
+    })
+    ws.onopen = (event) => {
+        console.log("onopen", event)
+        try {
+            // console.log(`${JSON.stringify([{ ticket: ticket }, { ...payload }, { format }])}`)
+            ws?.send(`${JSON.stringify([{ ticket: ticket }, { ...payload }, { format }])}`)
+        } catch (err: any) {
+            console.error("[UPBIT] tickerWS.onopen err: ", err)
+        }
+        
+    };
+    ws.onerror = (event) => {
+        try {
+            console.log("onerror", event)
+        } catch (err: any) {
+            console.error("[UPBIT] tickerWS.onerror err: ", err)
+        }
+        
+    };
+    ws.onclose = (event) => {
+        try {
+            console.log("onclose", event)
+        } catch (err: any) {
+            console.error("[UPBIT] tickerWS.onclose err: ", err)
+        }
+    };
+    return ws;
+}
+
 export const startTradeWebsocket = (coinPairs: string[], listener: any) => {
     const format = 'SIMPLE'
     let tradeWS: ReconnectingWebSocket | undefined;
@@ -94,25 +186,6 @@ export const startTradeWebsocket = (coinPairs: string[], listener: any) => {
                 if (isPongResponse(response) === true) {
                     console.log("pong. ", response);
                 } else {
-                    const res: UpbitSocketSimpleResponse = {...response as UpbitSocketSimpleResponse};
-                    // if (res.st === "SNAPSHOT") {
-                    //     console.log("res. ", res);
-                    // }
-                    const {symbol, coinPair, market} = parseCoinInfoFromCoinPair(EXCHANGE.UPBIT, res.cd)
-                    let aggTradeInfo: IAggTradeInfo = {
-                        exchange: EXCHANGE.UPBIT,
-                        market: market as MARKET,
-                        symbol: symbol,
-                        coinPair: coinPair,
-                        price: res.tp,
-                        volume: res.tv,
-                        askBid: res.ab === "ASK"? ASK_BID.ASK: ASK_BID.BID,    
-                        change: res.c === "FALL"? (0 - res.cp): res.cp,
-                        preClosingPrice: res.pcp,
-                        changeRate: (res.tp - res.pcp) / res.pcp * 100,
-                        timestamp: res.ttms
-                    }
-                    listener(aggTradeInfo);
                 }
             })
         }

@@ -7,13 +7,16 @@ import 'ag-grid-community/styles/ag-theme-alpine.css';
 import './coinPriceTabeStyle.css';
 import { EXCHANGE, MARKET, WS_TYPE } from '@/config/enum';
 import { IAggTradeInfo } from '@/config/interface';
-import { removeTrailingZeros } from '../../helper/cryptoHelper';
 import { coinGecko_getExchangeTickers } from '../../lib/crypto3partyAPI/coingecko/coingecko';
 import { ICoinGeckoExhcnageTicker } from '../../lib/crypto3partyAPI/coingecko/ICoingecko';
 import { useGlobalStore } from '@/app/hook/useGlobalStore';
 import { CoinTitle } from './CoinTitle'
 import useExchange from '@/app/hook/useExchange';
 import Favorite from './Favorite';
+import CoinChangePrice from './CoinChangePrice';
+import CoinPrice from './CoinPrice';
+import CoinVolume from './CoinVolume';
+import { Spin } from 'antd';
 
 interface DataType {
   id: string;
@@ -22,10 +25,16 @@ interface DataType {
   symbol: string,
   coinPair: string,
   price: number;
-  change24: number;
+  askBid: number;
+  change?: number;
+  change_24h?: number;
+  changeRate?: number;
+  changeRate_24h?: number;
   ochl: number[],
-  marketcap: number,
-  volume24: number,
+  accVolume?: number,
+  accVolume_24h?: number,
+  accTradePrice?: number,
+  accTradePrice_24h?: number,
   favorite: boolean,
   symbolImg: string | undefined,
 }
@@ -33,26 +42,20 @@ interface DataType {
 const CoinPriceTable: React.FC = () => {
   const {state} = useGlobalStore()
   const {getInitialInfo, startWebsocket} = useExchange()
-
+  const [isLoading, setIsLoading] = useState(true);
   const [rowData, setRowData] = useState<DataType[]>([]);
-  const dataTableRef = useRef<DataType[]>([])
-  
+  const exchangeRef = useRef<EXCHANGE>(EXCHANGE.UPBIT)
+  const dataTableRef = useRef<DataType[]>([])  
   const exchangeTickersMapRef = useRef<Map<EXCHANGE, ICoinGeckoExhcnageTicker>>(new Map<EXCHANGE, ICoinGeckoExhcnageTicker>())
   const wsRef = useRef<any>()
-
   const gridRef = useRef<any>();
-
-  const numberCellFormatter = (params: any) => {
-    return removeTrailingZeros(params.value);
-  };
   
   const columnDefs: any = [
     { headerName: '이름', field: 'symbol', minWidth: 100, cellRenderer: CoinTitle, getQuickFilterText: (params: any) => { return params?.data?.symbol }},
-    { headerName: '가격', field: 'price', minWidth: 100, cellClass: 'number', cellStyle: {textAlign: "end"}, valueFormatter: numberCellFormatter},
-    { headerName: '변동(24H)', minWidth: 100, field: 'change24'},
-    { headerName: '볼륨(24H)', field: 'volume24'},
-    { headerName: '마켓갭', field: 'marketcap'},
-    { headerName: '관심코인', field: 'favorite', cellRenderer: Favorite},
+    { headerName: '가격', field: 'price', minWidth: 100, headerClass: 'ag-header-right', cellRenderer: CoinPrice },
+    { headerName: '변동', field: 'change', minWidth: 100, headerClass: 'ag-header-right', cellRenderer: CoinChangePrice},    
+    { headerName: '볼륨(24H)', field: 'accTradePrice_24h', minWidth: 100, headerClass: 'ag-header-right', cellRenderer: CoinVolume},
+    { headerName: '관심코인', field: 'favorite', minWidth: 50, headerClass: 'ag-header-center', cellRenderer: Favorite},
   ];
 
   const onGridReady = useCallback(() => {
@@ -64,81 +67,63 @@ const CoinPriceTable: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const ret = getInitialInfo().then(() => {
-      coinGecko_getExchangeTickers(EXCHANGE.UPBIT).then((exchangeTickers: any) => {
-        if (exchangeTickers) { exchangeTickersMapRef.current.set(exchangeTickers?.name.toLowerCase() as EXCHANGE, exchangeTickers) }
-      }).then(() => {
-          startWebsocket(WS_TYPE.UPBIT_TRADE, (aggTradeInfo: IAggTradeInfo) => {
-            let index = dataTableRef.current.findIndex((data: DataType) => {
-              return (data.coinPair === aggTradeInfo.coinPair && data.exchange === aggTradeInfo.exchange && data.market === aggTradeInfo.market)
-            })
-            // console.log(state.symbolImgMap.get(aggTradeInfo.symbol))
-            const data: DataType = {
-              id: `${aggTradeInfo.exchange}_${aggTradeInfo.market}_${aggTradeInfo.coinPair}`,
-              exchange: EXCHANGE.UPBIT,
-              market: aggTradeInfo.market,
-              symbol: aggTradeInfo.symbol,
-              coinPair: aggTradeInfo.coinPair,
-              price: aggTradeInfo.price,
-              change24: aggTradeInfo.changeRate,
-              ochl: [],
-              marketcap: 0,
-              volume24: 0,
-              favorite: false,
-              symbolImg: state.symbolImgMap.get(aggTradeInfo.symbol)?.path ?? undefined,
-            }
-            let preData = null;
-            if (index === -1) {
-              // console.log("kkkkkk: ", data)
-              dataTableRef.current.push(data)
-            } else {
-              // console.log("gggggggg, ", data)
-              preData = {...dataTableRef.current[index]}
-              dataTableRef.current[index] = data;
-            }
-            // setDataTable(_.cloneDeep(dataTableRef.current));
-            // console.log("dataTableRef.current: ", dataTableRef.current)
-            // setRowData(dataTableRef.current)
-            //gridRef.current?.api.setRowData(dataTableRef.current)
-            const rowNode = gridRef?.current?.api?.getRowNode(data.id);
-            if (rowNode) {
-              // console.log(data)          
-              rowNode.setData(data);          
-              if (preData) {
-                
-                if (preData.price != data.price || preData.volume24 != data.marketcap) {
-                  gridRef?.current?.api?.flashCells({rowNodes: [rowNode], flashDelay: 400, fadeDelay: 100,})
-                  // gridRef?.current?.api?.flashCells({ rowNodes: [rowNode], columns: ['price'], flashDelay: 500,fadeDelay: 100,});
-                  // gridRef?.current?.api?.flashCells({ rowNodes: [rowNode], columns: ['change24'], flashDelay: 500,fadeDelay: 100,});
-                }
-                // if (preData.volume24 != data.volume24) {
-                //   gridRef?.current?.api?.flashCells({ rowNodes: [rowNode], columns: ['volume24'], flashDelay: 500,fadeDelay: 100,});
-                // }
-                // if (preData.volume24 != data.marketcap) {
-                //   gridRef?.current?.api?.flashCells({ rowNodes: [rowNode], columns: ['marketcap'], flashDelay: 500,fadeDelay: 100,});
-                // }
-              }
-            } else {
-              const tickerInfo = exchangeTickersMapRef.current.get(EXCHANGE.UPBIT)?.tickers?.find(((obj) => {
-                return (`${obj.target.toLowerCase()}-${obj.base.toLowerCase()}` === data.coinPair.toLowerCase())
-              }))
-              if (tickerInfo) {
-                dataTableRef.current[dataTableRef.current.length - 1].volume24 = tickerInfo.volume;
-              }
-              setRowData([...dataTableRef.current])
-            }
-          }).then((ws) => {
-            wsRef.current = ws;
-          })
-        }
-      )}
-    );
+    initialize();
     return () => {
       try {
         wsRef.current?.close()
       } catch {}
     }
   }, [])
+
+  const initialize = async () => {
+    await getInitialInfo();
+    let exchangeTickers: any = await coinGecko_getExchangeTickers(EXCHANGE.UPBIT);
+    wsRef.current = await startWebsocket(WS_TYPE.UPBIT_TICKER, (aggTradeInfo: IAggTradeInfo) => {
+      let index = dataTableRef.current.findIndex((data: DataType) => {
+        return (data.coinPair === aggTradeInfo.coinPair && data.exchange === aggTradeInfo.exchange && data.market === aggTradeInfo.market)
+      })
+      // console.log(state.symbolImgMap.get(aggTradeInfo.symbol))
+      const data: DataType = {
+        id: `${aggTradeInfo.exchange}_${aggTradeInfo.market}_${aggTradeInfo.coinPair}`,
+        exchange: EXCHANGE.UPBIT,
+        market: aggTradeInfo.market,
+        symbol: aggTradeInfo.symbol,
+        coinPair: aggTradeInfo.coinPair,
+        price: aggTradeInfo.price,
+        askBid: aggTradeInfo.askBid,
+        change: aggTradeInfo.change,
+        change_24h: aggTradeInfo.change_24h,
+        changeRate: aggTradeInfo.changeRate,
+        changeRate_24h: aggTradeInfo.changeRate_24h,
+        ochl: [],
+        accVolume: aggTradeInfo.accVolume,
+        accVolume_24h: aggTradeInfo.accVolume_24h,
+        accTradePrice: aggTradeInfo.accTradePrice,
+        accTradePrice_24h: aggTradeInfo.accTradePrice_24h,
+        favorite: false,
+        symbolImg: state.symbolImgMap.get(aggTradeInfo.symbol)?.path ?? undefined,
+      }
+      let preData = null;
+      if (index === -1) {
+        dataTableRef.current.push(data)
+      } else {        
+        preData = {...dataTableRef.current[index]}
+        dataTableRef.current[index] = data;
+      }
+      const rowNode = gridRef?.current?.api?.getRowNode(data.id);
+      if (rowNode) {        
+        rowNode.setData(data);          
+        if (preData) {
+          if (preData.price != data.price) {
+            gridRef?.current?.api?.flashCells({rowNodes: [rowNode], flashDelay: 400, fadeDelay: 100,})
+          }
+        }
+      } else {
+        setRowData([...dataTableRef.current])
+      }
+      setIsLoading(false);
+    })
+  }
 
   const onFilterTextBoxChanged = useCallback(() => {
     const input = document.getElementById('filter-text-box') as HTMLInputElement | null;
@@ -155,6 +140,10 @@ const CoinPriceTable: React.FC = () => {
     };
   }, []);
 
+  if (!rowData) {
+    return null;
+  }
+
   return (
     <div style={{ width: '100%', height: '100%'}}>
       <div className="example-wrapper">
@@ -166,19 +155,21 @@ const CoinPriceTable: React.FC = () => {
             onInput={onFilterTextBoxChanged}
           />
         </div>
-        <div style={{ height: '800px', width: '100%'}} className="ag-theme-alpine">
-          <AgGridReact
-            ref={gridRef}
-            rowData={rowData}
-            columnDefs={columnDefs}
-            defaultColDef={{ sortable: true, resizable: false }}
-            cacheQuickFilter={true}
-            onGridReady={onGridReady}
-            getRowId={getRowId}
-            rowHeight={50}
-            rowBuffer={50}
-          />
-        </div>  
+        <Spin spinning={isLoading} size="large">
+          <div style={{height: '800px', width: '100%'}} className="ag-theme-alpine">
+            <AgGridReact
+                ref={gridRef}
+                rowData={rowData}
+                columnDefs={columnDefs}
+                defaultColDef={{ sortable: true, resizable: false }}
+                cacheQuickFilter={true}
+                onGridReady={onGridReady}
+                getRowId={getRowId}
+                rowHeight={50}
+                rowBuffer={50}
+            />
+          </div>
+        </Spin> 
       </div>
     </div>
   );

@@ -31,6 +31,7 @@ export enum MARKET {
 }
 
 export enum WS_TYPE {
+    UPBIT_TICKER = "UPBIT_TICKER",
     UPBIT_TRADE = "UPBIT_TRADE",
     UPBIT_ORDER_BOOK = "UPBIT_ORDER_BOOK",
 }

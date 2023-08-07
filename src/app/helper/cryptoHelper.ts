@@ -10,12 +10,12 @@ export const parseCoinInfoFromCoinPair = (exchnage:EXCHANGE, coinPair: string) =
     return ({symbol, coinPair, market});
 }
 
-export const removeTrailingZeros = (number: number) => {
+export const removeTrailingZeros = (number: number, numOfFixed?: number) => {
     if (number === undefined || number === null) {
-        return -1;
+        return "";
     }
     // Convert the number to a string representation with 10 decimal places
-    const stringWithFixedDecimal = number.toFixed(10);
+    const stringWithFixedDecimal = number.toFixed(numOfFixed? numOfFixed: 10);
   
     // Use parseFloat to remove trailing zeros
     const parsedNumber = parseFloat(stringWithFixedDecimal);

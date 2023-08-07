@@ -1,7 +1,7 @@
 "use client"
 
 import WS from "ws"
-import { getInitialInfoUPBIT, startOrderBookWebsocket, startTradeWebsocket } from "@/app/lib/exchange/upbit/upbitCtrl";
+import { getInitialInfoUPBIT, startOrderBookWebsocket, startTickerWebsocket, startTradeWebsocket } from "@/app/lib/exchange/upbit/upbitCtrl";
 import { getInitialInfoBinance, startWebSocket } from "../lib/exchange/binance/binanceCtrl";
 import { EXCHANGE, MARKET, WS_TYPE } from "@/config/enum";
 import { IExchangeCoinInfo } from "@/config/interface";
@@ -46,7 +46,25 @@ function useExchange() {
 
     const startWebsocket = (type: WS_TYPE, listener: any, codes?: string[], ) => {
         return new Promise(async (resolve) => {
-            if (type === WS_TYPE.UPBIT_TRADE) {
+            if (type === WS_TYPE.UPBIT_TICKER) {
+                if (!codes || codes.length === 0) {
+                    let allCodes: string[] = []
+                    exchangeConinInfos.get(EXCHANGE.UPBIT)?.forEach((obj: IExchangeCoinInfo) => {
+                        allCodes.push(obj.coinPair) 
+                    });
+                    codes = allCodes;
+                    console.log("allCodes", exchangeConinInfos)
+                }
+                // console.log("codes: ", codes)
+                if (codes.length === 0) {
+                    resolve(null);
+                }
+                const ws = startTickerWebsocket(codes, (res: any) => {
+                    //console.log(res)
+                    listener(res);                    
+                });
+                resolve(ws);
+            } else if (type === WS_TYPE.UPBIT_TRADE) {
                 if (!codes || codes.length === 0) {
                     let allCodes: string[] = []
                     exchangeConinInfos.get(EXCHANGE.UPBIT)?.forEach((obj: IExchangeCoinInfo) => {
@@ -84,7 +102,6 @@ function useExchange() {
             }
         })
     }
-
     return {
         getInitialInfo, 
         startWebsocket

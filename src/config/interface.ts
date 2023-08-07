@@ -27,11 +27,16 @@ export interface IAggTradeInfo {
     symbol: string,
     coinPair: string,
     price: number,
-    volume: number,
-    askBid: ASK_BID,    
-    change: number,             // 전일 대비 가격 증감
+    accVolume: number,          // UTC0기준 누적 거래량
+    accVolume_24h: number,      // 24H 누적 거래량
+    accTradePrice: number,      // UTC0기준 누적 거래금액
+    accTradePrice_24h: number,  // 24H 누적 거래금액
     preClosingPrice: number,    // 전일 종가
-    changeRate: number,         // 변동폭
+    askBid: ASK_BID,    
+    change?: number,             // 전일 대비 가격 증감
+    change_24h?: number,         // 24H 대비 가격 증감
+    changeRate?: number,         // 전일 대비 변동폭
+    changeRate_24h?: number,     // 24H 변동폭
     timestamp: number
 }
 
