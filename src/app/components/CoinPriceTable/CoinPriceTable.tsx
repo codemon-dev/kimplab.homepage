@@ -16,8 +16,10 @@ import Favorite from './Favorite';
 import CoinChangePrice from './CoinChangePrice';
 import CoinPrice from './CoinPrice';
 import CoinVolume from './CoinVolume';
-import { Spin } from 'antd';
 import LoadingComp from '../LoadingComp';
+import CoinPriceDetail from './CoinPriceDetail';
+import { AdvancedRealTimeChart } from "react-ts-tradingview-widgets";
+import { Col, Divider, Row } from 'antd';
 
 interface DataType {
   id: string;
@@ -43,6 +45,7 @@ interface DataType {
 const CoinPriceTable: React.FC = () => {
   const {state} = useGlobalStore()
   const {getInitialInfo, startWebsocket} = useExchange()
+  const [detailOpen, setDetailOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [rowData, setRowData] = useState<DataType[]>([]);
   const selExchangeRef = useRef<EXCHANGE>(EXCHANGE.UPBIT)
@@ -50,6 +53,8 @@ const CoinPriceTable: React.FC = () => {
   const wsRef = useRef<Map<EXCHANGE, any>>(new Map<EXCHANGE, any>())
   const gridRef = useRef<any>();
   const isMountRef = useRef(false)
+
+  
   
   const columnDefs: any = [
     { headerName: '이름', field: 'symbol', minWidth: 150, cellRenderer: CoinTitle, getQuickFilterText: (params: any) => { return params?.data?.symbol }},
@@ -153,35 +158,60 @@ const CoinPriceTable: React.FC = () => {
     };
   }, []);
 
+  const onRowClicked = (event: any) => {
+    console.log("onRowClicked. event: ", event)
+    setDetailOpen(true);
+  }
+
+  const onDetailClose = (event: any) => {
+    setDetailOpen(false);
+  }
+
   if (!rowData) {
     return null;
   }
 
   return (    
-    <div style={{display: "flex", flexDirection: "column", height: "100%", width: "100%"}}>
-      <div className="header-root">
-        <input
-          type="text"
-          id="filter-text-box"
-          placeholder="Filter..."
-          onInput={onFilterTextBoxChanged}
-        />
-      </div>
-      <div style={{height: "100%", width: "100%"}} className="ag-theme-alpine">
-          <AgGridReact
-              ref={gridRef}
-              rowData={rowData}
-              columnDefs={columnDefs}
-              defaultColDef={{ sortable: true, resizable: false }}
-              cacheQuickFilter={true}
-              onGridReady={onGridReady}
-              getRowId={getRowId}
-              rowHeight={50}
-              rowBuffer={50}
-              className='myGrid'
-              loadingOverlayComponent={LoadingComp}
-          />
-        </div>
+    <div style={{display: "flex", flexDirection: "column", flex: 1, height: "100%", width: "100%", alignItems: "center"}}>
+      {/* <div style={{flex: 1, height: "100%", minWidth: "800px"}} className="ag-theme-alpine"> */}
+        <Row style={{flex: 1, height: "100%", width: "100%"}}>
+          <Col style={{flex: 1, padding: 5}}>
+            <div style={{width: "100%", height: "50%"}}>
+              <AdvancedRealTimeChart theme="light" autosize></AdvancedRealTimeChart>
+            </div>
+          </Col>
+          <Col>
+            <Divider />
+          </Col>          
+          <Col style={{height: "100%", width: "800px", padding: 5}} className="ag-theme-alpine">
+            <input
+              type="text"
+              id="filter-text-box"
+              placeholder="Filter..."
+              onInput={onFilterTextBoxChanged}
+            />
+            <AgGridReact
+                ref={gridRef}
+                rowData={rowData}
+                columnDefs={columnDefs}
+                defaultColDef={{ sortable: true, resizable: false }}
+                cacheQuickFilter={true}
+                onGridReady={onGridReady}
+                getRowId={getRowId}
+                rowHeight={50}
+                rowBuffer={50}
+                className='myGrid'
+                loadingOverlayComponent={LoadingComp}
+                onRowClicked={onRowClicked}
+            />
+          </Col>
+        </Row>
+      {/* </div> */}
+      <CoinPriceDetail 
+          title="Detail"
+          open={detailOpen} 
+          onClose={onDetailClose} 
+          getContainer={false}/>
     </div>
   );
 };

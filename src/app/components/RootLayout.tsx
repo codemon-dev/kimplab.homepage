@@ -11,16 +11,19 @@ export default function RootLayout({ children }: PropsWithChildren) {
   //   token: { colorBgContainer },
   // } = theme.useToken();
   
-  const [messageApi, contextHolder] = message.useMessage();
+  const [mssageApi, contextHolder] = message.useMessage();
   return (
-    <Layout className="layout" style={{ minHeight: "100vh", display: 'flex', flexDirection:'column'}}>
-      {contextHolder}
-      <HeaderComp />                
-      <Content style={{ padding: '0px 50px', paddingTop: "20px", display: "flex", flexDirection:'column', flex: 1}}>
-        <div className="site-layout-content" style={{display: "flex", flex: 1}}>
-          {children}
-        </div>
-      </Content>
-      <FooterComp />
-    </Layout>)
+    <div>
+      <Layout className="layout" style={{ minHeight: "100vh", minWidth: "100vw"}}>
+        {contextHolder}
+        <HeaderComp />                
+        <Content style={{ padding: '0px 50px', paddingTop: "20px", display: "flex", flexDirection:'column', flex: 1}}>
+          <div className="site-layout-content" style={{display: "flex", flex: 1, width: "100%", height: "100%"}}>
+            {children}
+          </div>
+        </Content>
+        <FooterComp />
+      </Layout>
+    </div>
+  ) 
 }

@@ -14,11 +14,6 @@
   width: 100%;
 }
 
-.header-root {
-  font-family: Verdana, Geneva, Tahoma, sans-serif;
-  font-size: 13px;
-  margin-bottom: 5px;
-}
 
 .ag-theme-alpine {
   --ag-value-change-value-highlight-background-color: rgba(108, 185, 221, 0.2);

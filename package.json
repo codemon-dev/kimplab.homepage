@@ -42,6 +42,7 @@
     "proxy-middleware": "^0.15.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
+    "react-ts-tradingview-widgets": "^1.0.16",
     "reconnecting-websocket": "^4.4.0",
     "remove": "^0.1.5",
     "typescript": "5.1.6",
