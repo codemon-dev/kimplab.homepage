@@ -18,7 +18,7 @@ import CoinPrice from './CoinPrice';
 import CoinVolume from './CoinVolume';
 import LoadingComp from '../LoadingComp';
 import CoinPriceDetail from './CoinPriceDetail';
-import { AdvancedRealTimeChart } from "react-ts-tradingview-widgets";
+import { AdvancedRealTimeChart, AdvancedRealTimeChartProps } from "react-ts-tradingview-widgets";
 import { Col, Divider, Row } from 'antd';
 
 interface DataType {
@@ -42,19 +42,68 @@ interface DataType {
   symbolImg: string | undefined,
 }
 
+// AdvancedRealTimeChartProps = {
+//   width?: number | string;
+//   height?: number | string;
+//   autosize?: boolean;
+//   symbol?: string;
+//   interval?: "1" | "3" | "5" | "15" | "30" | "60" | "120" | "180" | "240" | "D" | "W";
+//   range?: "1D" | "5D" | "1M" | "3M" | "6M" | "YTD" | "12M" | "60M" | "ALL";
+//   timezone?: Timezone;
+//   theme?: ColorTheme;
+//   style?: "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9";
+//   locale?: Locales | "hu_HU" | "fa_IR";
+//   toolbar_bg?: string;
+//   enable_publishing?: boolean;
+//   withdateranges?: boolean;
+//   hide_top_toolbar?: boolean;
+//   hide_legend?: boolean;
+//   hide_side_toolbar?: boolean;
+//   allow_symbol_change?: boolean;
+//   save_image?: boolean;
+//   details?: boolean;
+//   hotlist?: boolean;
+//   calendar?: boolean;
+//   show_popup_button?: boolean;
+//   popup_width?: string;
+//   popup_height?: string;
+//   watchlist?: string[];
+//   studies?: Studies[];
+//   disabled_features?: WidgetFeatures[];
+//   enabled_features?: WidgetFeatures[];
+//   container_id?: string;
+//   children?: never;
+//   copyrightStyles?: CopyrightStyles;
+// };
+
+const defaultAdvancedRealTimeChartProps: AdvancedRealTimeChartProps = {
+    autosize: true,
+    symbol: "UPBIT:BTCKRW",
+    interval: "60",
+    // timezone?: Timezone;
+    theme: "light",
+    // style?: "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9";
+    locale: "kr",    
+    enable_publishing: true,
+    allow_symbol_change: false,
+    save_image: true,    
+    show_popup_button: true,    
+    // copyrightStyles: CopyrightStyles;
+} 
+
 const CoinPriceTable: React.FC = () => {
   const {state} = useGlobalStore()
+  const advancedRealTimeChartPropsRef = useRef(defaultAdvancedRealTimeChartProps)
+  const [advancedRealTimeChartProps, setAdvancedRealTimeChartProps] = useState(advancedRealTimeChartPropsRef.current)
   const {getInitialInfo, startWebsocket} = useExchange()
   const [detailOpen, setDetailOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [rowData, setRowData] = useState<DataType[]>([]);
-  const selExchangeRef = useRef<EXCHANGE>(EXCHANGE.UPBIT)
+  const selelectedExchangeRef = useRef<EXCHANGE>(EXCHANGE.UPBIT)
   const dataTableRef = useRef<DataType[]>([])  
   const wsRef = useRef<Map<EXCHANGE, any>>(new Map<EXCHANGE, any>())
   const gridRef = useRef<any>();
   const isMountRef = useRef(false)
-
-  
   
   const columnDefs: any = [
     { headerName: '이름', field: 'symbol', minWidth: 150, cellRenderer: CoinTitle, getQuickFilterText: (params: any) => { return params?.data?.symbol }},
@@ -161,6 +210,8 @@ const CoinPriceTable: React.FC = () => {
   const onRowClicked = (event: any) => {
     console.log("onRowClicked. event: ", event)
     setDetailOpen(true);
+    advancedRealTimeChartPropsRef.current = {...advancedRealTimeChartPropsRef.current, symbol: `${event.data.exchange.toUpperCase()}:${event.data.symbol}${event.data.market}`}
+    setAdvancedRealTimeChartProps(advancedRealTimeChartPropsRef.current)
   }
 
   const onDetailClose = (event: any) => {
@@ -171,16 +222,42 @@ const CoinPriceTable: React.FC = () => {
     return null;
   }
 
+//   const defaultAdvancedRealTimeChartProps: AdvancedRealTimeChartProps = {
+//     autosize: true,
+//     // symbol?: string;
+//     interval: "60",
+//     // timezone?: Timezone;
+//     theme: "light",
+//     // style?: "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9";
+//     locale: "kr",    
+//     enable_publishing: true,
+//     allow_symbol_change: false,
+//     save_image: true,    
+//     show_popup_button: true,    
+//     // copyrightStyles: CopyrightStyles;
+// } 
+
   return (    
     <div style={{display: "flex", flexDirection: "column", flex: 1, height: "100%", width: "100%", alignItems: "center"}}>
       {/* <div style={{flex: 1, height: "100%", minWidth: "800px"}} className="ag-theme-alpine"> */}
         <Row style={{flex: 1, height: "100%", width: "100%"}}>
-          <Col span={16} style={{padding: 5}}>
+          <Col span={14} style={{padding: 5}}>
             <div style={{width: "100%", height: "50%"}}>
-              <AdvancedRealTimeChart theme="light" autosize></AdvancedRealTimeChart>
+              <AdvancedRealTimeChart
+                symbol={advancedRealTimeChartProps.symbol}
+                autosize={advancedRealTimeChartProps.autosize} 
+                interval={advancedRealTimeChartProps.interval}
+                theme={advancedRealTimeChartProps.theme} 
+                locale={advancedRealTimeChartProps.locale}
+                enable_publishing={advancedRealTimeChartProps.enable_publishing}
+                allow_symbol_change={advancedRealTimeChartProps.allow_symbol_change}
+                save_image={advancedRealTimeChartProps.save_image}
+                show_popup_button={advancedRealTimeChartProps.show_popup_button}
+                
+              />
             </div>
           </Col>    
-          <Col span={8} style={{padding: 5}} className="ag-theme-alpine">
+          <Col span={10} style={{padding: 5}} className="ag-theme-alpine">
             <input
               type="text"
               id="filter-text-box"
@@ -204,11 +281,11 @@ const CoinPriceTable: React.FC = () => {
           </Col>
         </Row>
       {/* </div> */}
-      <CoinPriceDetail 
+      {/* <CoinPriceDetail 
           title="Detail"
           open={detailOpen} 
           onClose={onDetailClose} 
-          getContainer={false}/>
+          getContainer={false}/> */}
     </div>
   );
 };
