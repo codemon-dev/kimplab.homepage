@@ -175,15 +175,12 @@ const CoinPriceTable: React.FC = () => {
     <div style={{display: "flex", flexDirection: "column", flex: 1, height: "100%", width: "100%", alignItems: "center"}}>
       {/* <div style={{flex: 1, height: "100%", minWidth: "800px"}} className="ag-theme-alpine"> */}
         <Row style={{flex: 1, height: "100%", width: "100%"}}>
-          <Col style={{flex: 1, padding: 5}}>
+          <Col span={16} style={{padding: 5}}>
             <div style={{width: "100%", height: "50%"}}>
               <AdvancedRealTimeChart theme="light" autosize></AdvancedRealTimeChart>
             </div>
-          </Col>
-          <Col>
-            <Divider />
-          </Col>          
-          <Col style={{height: "100%", width: "800px", padding: 5}} className="ag-theme-alpine">
+          </Col>    
+          <Col span={8} style={{padding: 5}} className="ag-theme-alpine">
             <input
               type="text"
               id="filter-text-box"
