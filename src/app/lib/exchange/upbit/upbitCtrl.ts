@@ -13,9 +13,9 @@ import ReconnectingWebSocket from "reconnecting-websocket";
 
 const UPBI_WS_ADDR = "wss://api.upbit.com/websocket/v1"
 
-export const getInitialInfoUPBIT = async () => {
+export const getInitialInfoUpbit = async () => {
     const response: any = await fetchUpbitApi(FETCH_METHOD.GET, UPBIT_ENDPOINT.API_MARKET_ALL);
-    console.log("response: ", response)
+    // console.log("response: ", response)
     let upbitExchangeInfos: IExchangeCoinInfo[] = []
     if (!response) {
         return null;
@@ -23,7 +23,6 @@ export const getInitialInfoUPBIT = async () => {
     if (response) {
             response.forEach((obj: any) => {
                 const {symbol, coinPair, market} = parseCoinInfoFromCoinPair(EXCHANGE.UPBIT, obj.market)
-                
                 let info: IExchangeCoinInfo = {
                     exchange: EXCHANGE.UPBIT,
                     symbol: symbol,
@@ -87,6 +86,7 @@ export const startTickerWebsocket = (coinPairs: string[], listener: any) => {
     ticket = UUID + (ticket? `-${ticket}`: "");    
     ws?.close();
     ws = new ReconnectingWebSocket(urlProvider, [], options);
+    let snapshot: IAggTradeInfo[] = []
     ws.addEventListener('message',  (payload) => {
         try {
             payload.data.text().then((obj: any) => {
@@ -95,9 +95,6 @@ export const startTickerWebsocket = (coinPairs: string[], listener: any) => {
                     console.log("pong. ", response);
                 } else {
                     const res: UpbitSocketSimpleResponse = {...response as UpbitSocketSimpleResponse};
-                    // if (res.st === "SNAPSHOT") {
-                    //     console.log("res. ", res);
-                    // }
                     const {symbol, coinPair, market} = parseCoinInfoFromCoinPair(EXCHANGE.UPBIT, res.cd)
                     let aggTradeInfo: IAggTradeInfo = {
                         exchange: EXCHANGE.UPBIT,
@@ -115,7 +112,15 @@ export const startTickerWebsocket = (coinPairs: string[], listener: any) => {
                         changeRate: res.scr * 100,
                         timestamp: res.ttms
                     }
-                    listener(aggTradeInfo);
+                    if (res.st === "SNAPSHOT") {
+                        snapshot.push(aggTradeInfo)
+                    } else {
+                        if (snapshot.length > 0) {
+                            listener(snapshot);
+                            snapshot = [];
+                        }
+                        listener([aggTradeInfo]);
+                    }
                 }
             })
         }

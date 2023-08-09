@@ -5,29 +5,29 @@ export enum FETCH_METHOD {
 }
 
 export enum EXCHANGE {
-    NONE = "none",
-    UPBIT = "upbit",
-    BITHUM = "bithum",
-    BINANCE = "binance",
-    BYBIT = "bybit",
-    OKX = "okx",
-    KUCOIN = "kucoin",
-    HUOBI = "huobi",
-    GATEIO = "gateio",
-    MEXC = "mexc"
+    NONE = "NONE",
+    UPBIT = "UPBIT",
+    BITHUMB = "BITHUMB",
+    BINANCE = "BINANCE",
+    BYBIT = "BYBIT",
+    OKX = "OKX",
+    KUCOIN = "KUCOIN",
+    HUOBI = "HUOBI",
+    GATEIO = "GATEIO",
+    MEXC = "MEXC"
 }
 
 export enum MARKET {
-    NONE = "none",
-    KRW = "krw",
-    USD = "usd",
-    USDT = "usdt",    
-    BUSD = "busd",
-    USDT_PERP = "usdt_perp",
-    BUSD_PERP = "busd_perp",
-    BTC = "btc",
-    ETH = "eth",
-    BNB = "bnb",
+    NONE = "NONE",
+    KRW = "KRW",
+    USD = "USD",
+    USDT = "USDT",    
+    BUSD = "BUSD",
+    USDT_PERP = "USDT_PERP",
+    BUSD_PERP = "BUSD_PERP",
+    BTC = "BTC",
+    ETH = "ETH",
+    BNB = "BNB",
 }
 
 export enum WS_TYPE {
@@ -42,8 +42,8 @@ export enum ASK_BID {
 }
 
 export enum IMG_TYPE {
-    SYMBOL = 0,
-    EXCHANGE = 1,
-    ETC = 2,
-    NONE = 4
+    NONE,
+    SYMBOL,
+    EXCHANGE,
+    ETC,
 } 

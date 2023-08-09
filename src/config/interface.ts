@@ -40,6 +40,16 @@ export interface IAggTradeInfo {
     timestamp: number
 }
 
+export interface IOrderBook {
+    exchange: EXCHANGE,
+    market: MARKET,
+    symbol: string,
+    coinPair: string,
+    bid: [{price: number, qty: number}],
+    ask: [{price: number, qty: number}],
+    timestamp: number
+}
+
 export interface IImgInfo {
     imgType: IMG_TYPE,
     id: string,

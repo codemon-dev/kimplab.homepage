@@ -1,20 +1,23 @@
 "use client"
 
 import WS from "ws"
-import { getInitialInfoUPBIT, startOrderBookWebsocket, startTickerWebsocket, startTradeWebsocket } from "@/app/lib/exchange/upbit/upbitCtrl";
+import { getInitialInfoUpbit, startOrderBookWebsocket, startTickerWebsocket, startTradeWebsocket } from "@/app/lib/exchange/upbit/upbitCtrl";
 import { getInitialInfoBinance, startWebSocket } from "../lib/exchange/binance/binanceCtrl";
 import { EXCHANGE, MARKET, WS_TYPE } from "@/config/enum";
-import { IExchangeCoinInfo } from "@/config/interface";
-
-const UPBI_WS_ADDR = "wss://api.upbit.com/websocket/v1"
-
-interface UPBIT_PONG_RESPONSE {
-    status: string;
-}
+import { IAggTradeInfo, IExchangeCoinInfo, IOrderBook } from "@/config/interface";
 
 function useExchange() {
     let socketMap: Map<string, any> = new Map<string, any>();
-    let exchangeConinInfos: Map<EXCHANGE, IExchangeCoinInfo[]> = new Map<EXCHANGE, IExchangeCoinInfo[]>();
+
+    let upbit_trade: Map<string, IAggTradeInfo> = new Map<string, IAggTradeInfo>();
+    let upbit_orderbook: Map<string, IOrderBook> = new Map<string, IOrderBook>();
+    let bithumb_trade: Map<string, IAggTradeInfo> = new Map<string, IAggTradeInfo>();
+    let bithumb_orderbook: Map<string, IOrderBook> = new Map<string, IOrderBook>();
+    let binance_trade: Map<string, IAggTradeInfo> = new Map<string, IAggTradeInfo>();
+    let binance_orderbook: Map<string, IOrderBook> = new Map<string, IOrderBook>();
+    let bybit_trade: Map<string, IAggTradeInfo> = new Map<string, IAggTradeInfo>();
+    let bybit_orderbook: Map<string, IOrderBook> = new Map<string, IOrderBook>();
+
     const wsOptions = {
         WebSocket: WS,
         maxReconnectionDelay: 10000,
@@ -28,83 +31,69 @@ function useExchange() {
         debug: false,
     };
 
-    const getInitialInfo = () => {
+    const getInitialInfo = () => {        
         return new Promise(async (resolve) => {
+            let exchangeConinInfos: Map<EXCHANGE, Map<string, IExchangeCoinInfo>> = new Map<EXCHANGE, Map<string, IExchangeCoinInfo>>();
             let promises: any = []
-            promises.push(getInitialInfoUPBIT());        
+            promises.push(getInitialInfoUpbit());        
             promises.push(getInitialInfoBinance());
-            const ret = await Promise.all(promises);
-            if (ret[0]) {
-                exchangeConinInfos.set(EXCHANGE.UPBIT, ret[0])
-            }
-            if (ret[1]) {
-                exchangeConinInfos.set(EXCHANGE.BINANCE, ret[1])
-            }
+            const promiseRet = await Promise.all(promises);
+            promiseRet?.forEach((ret: any) => {
+                if (ret && ret.length > 0) {
+                    (ret as IExchangeCoinInfo[])?.forEach((obj: IExchangeCoinInfo) => {
+                        if (exchangeConinInfos.has(obj.exchange)) {
+                            exchangeConinInfos.get(obj.exchange)?.set(obj.coinPair, obj);
+                        } else {
+                            exchangeConinInfos.set(obj.exchange, new Map<string, IExchangeCoinInfo>());
+                            exchangeConinInfos.get(obj.exchange)?.set(obj.coinPair, obj)
+                        }
+                    })
+                }
+            })
             resolve(exchangeConinInfos);
         })
     }
 
-    const startWebsocket = (type: WS_TYPE, listener: any, codes?: string[], ) => {
+    const startWebsocket = (type: WS_TYPE, codes: string[], listener?: any) => {
+        if (!codes || codes.length === 0) { 
+            return null 
+        }
         return new Promise(async (resolve) => {
             if (type === WS_TYPE.UPBIT_TICKER) {
-                if (!codes || codes.length === 0) {
-                    let allCodes: string[] = []
-                    exchangeConinInfos.get(EXCHANGE.UPBIT)?.forEach((obj: IExchangeCoinInfo) => {
-                        allCodes.push(obj.coinPair) 
-                    });
-                    codes = allCodes;
-                    console.log("allCodes", exchangeConinInfos)
-                }
-                // console.log("codes: ", codes)
-                if (codes.length === 0) {
-                    resolve(null);
-                }
-                const ws = startTickerWebsocket(codes, (res: any) => {
-                    //console.log(res)
-                    listener(res);                    
+                const ws = startTickerWebsocket(codes, (res: IAggTradeInfo[]) => { 
+                    if (listener) { listener(res) }
+                    // if (res) { upbit_trade.set(res.coinPair, res) }
                 });
                 resolve(ws);
             } else if (type === WS_TYPE.UPBIT_TRADE) {
-                if (!codes || codes.length === 0) {
-                    let allCodes: string[] = []
-                    exchangeConinInfos.get(EXCHANGE.UPBIT)?.forEach((obj: IExchangeCoinInfo) => {
-                        allCodes.push(obj.coinPair) 
-                    });
-                    codes = allCodes;
-                    console.log("allCodes", exchangeConinInfos)
-                }
-                // console.log("codes: ", codes)
-                if (codes.length === 0) {
-                    resolve(null);
-                }
-                const ws = startTradeWebsocket(codes, (res: any) => {
-                    // console.log(res)
-                    listener(res);
-                    
+                if (codes.length === 0) { resolve(null) }
+                const ws = startTradeWebsocket(codes, (res: IAggTradeInfo) => { 
+                    if (listener) { listener(res) }
+                    if (res) { upbit_trade.set(res.coinPair, res) }
                 });
                 resolve(ws);
             } else if (type === WS_TYPE.UPBIT_ORDER_BOOK) {
-                if (!codes || codes.length === 0) {
-                    let allCodes: string[] = []
-                    exchangeConinInfos.get(EXCHANGE.UPBIT)?.forEach((obj: IExchangeCoinInfo) => {
-                        allCodes.push(obj.coinPair) 
-                    });
-                    codes = allCodes;
-                }
-                if (codes.length === 0) {
-                    resolve(null);
-                }
-                const ws = startOrderBookWebsocket(codes, (res: any) => {
-                    // console.log(res)
-                    listener(res);
+                const ws = startOrderBookWebsocket(codes, (res: IOrderBook) => { 
+                    if (listener) { listener(res) }
+                    if (res) { upbit_orderbook.set(res.coinPair, res) }
                 });
                 resolve(ws);
             }
         })
     }
+
     return {
         getInitialInfo, 
-        startWebsocket
+        startWebsocket,
+        socketMap,
+        upbit_trade,
+        upbit_orderbook,
+        bithumb_trade,
+        bithumb_orderbook,
+        binance_trade,
+        binance_orderbook,
+        bybit_trade,
+        bybit_orderbook,
     }
 }
 

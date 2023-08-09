@@ -24,7 +24,7 @@ const rewrites = async () => {
 };
 
 const nextConfig = {
-    reactStrictMode: true,
+    reactStrictMode: false,
     rewrites,
     // eslint: {
     //   ignoreDuringBuilds: true,
