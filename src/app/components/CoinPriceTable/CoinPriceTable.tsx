@@ -59,7 +59,8 @@ interface SelectedExchangeMarket {
 
 const defaultAdvancedRealTimeChartProps: AdvancedRealTimeChartProps = {
     autosize: true,
-    symbol: "UPBIT:BTCKRW",
+    //symbol: "UPBIT:BTCKRW",
+    symbol: "NONE",
     interval: "60",
     // timezone?: Timezone;
     theme: "light",
@@ -85,8 +86,8 @@ const CoinPriceTable: React.FC = () => {
   const [detailOpen, setDetailOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [rowData, setRowData] = useState<DataType[]>([]);
-  // const selectedMarket = useRef<SelectedExchangeMarket>({exchange: EXCHANGE.UPBIT, market: MARKET.KRW})
-  const selectedRef = useRef<SelectedExchangeMarket>({exchange: EXCHANGE.BINANCE, market: MARKET.USDT})
+  const selectedRef = useRef<SelectedExchangeMarket>({exchange: EXCHANGE.UPBIT, market: MARKET.KRW})
+  // const selectedRef = useRef<SelectedExchangeMarket>({exchange: EXCHANGE.BINANCE, market: MARKET.USDT})
   const [selectedExchange, setSelectedExchange] = useState<EXCHANGE>(selectedRef.current.exchange)
   const [selectedMarket, setSelectedMarket] = useState<MARKET>(selectedRef.current.market)  
   const [marketOptions, setMarketOptions] = useState<IOption[]>([])
@@ -191,6 +192,7 @@ const CoinPriceTable: React.FC = () => {
       filterOptionRef.current = [...options];
     }
     setFilterOption(filterOptionRef.current)
+    changeTradingView(selectedRef.current.exchange, getFirstSymbolFromExchange(selectedRef.current.exchange, selectedRef.current.market), selectedRef.current.market)
   }
 
   const onGridReady = useCallback(() => {
@@ -233,8 +235,7 @@ const CoinPriceTable: React.FC = () => {
 
   const initialize = async () => {
     filterRef.current = [];
-    //selectedMarket.current = {exchange: EXCHANGE.UPBIT, market: MARKET.KRW};
-    selectedRef.current = {exchange: EXCHANGE.BINANCE, market: MARKET.USDT};
+    selectedRef.current = {exchange: EXCHANGE.UPBIT, market: MARKET.KRW};
     setMarketOptions(ExchangeDefaultInfo.binance.markets)    
     let promises: any = []
     promises.push(initUpbitWebSocket());
@@ -272,7 +273,7 @@ const CoinPriceTable: React.FC = () => {
         let index = binanceDataTableRef.current.get(aggTradeInfo.market)?.findIndex((data: DataType) => {
           return (data.coinPair === aggTradeInfo.coinPair && data.exchange === aggTradeInfo.exchange && data.market === aggTradeInfo.market)
         })
-        console.log(state.symbolImgMap.get(aggTradeInfo.symbol))
+        // console.log(state.symbolImgMap.get(aggTradeInfo.symbol))
         const data: DataType = createDataType(aggTradeInfo);
         let preData = null;
         let newDataTable = binanceDataTableRef.current.get(data.market) ?? [];
