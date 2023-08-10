@@ -10,6 +10,6 @@ export const ExchangeDefaultInfo = {
     },
     "binance": {
         exchange: EXCHANGE.BINANCE,
-        markets: [MARKET.USD, MARKET.USDT, MARKET.BUSD_PERP, , MARKET.USDT_PERP]
+        markets: [MARKET.BUSD, MARKET.TUSD, MARKET.USDT, MARKET.USD_PERP, MARKET.USDT_PERP]
     },
 }

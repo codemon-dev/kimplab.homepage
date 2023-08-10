@@ -6,7 +6,7 @@ import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
 import './coinPriceTabeStyle.css';
 import { EXCHANGE, MARKET, WS_TYPE } from '@/config/enum';
-import { IAggTradeInfo } from '@/config/interface';
+import { IAggTradeInfo, IFilterCondition, IFilterModel } from '@/config/interface';
 import { coinGecko_getExchangeTickers } from '../../lib/crypto3partyAPI/coingecko/coingecko';
 import { ICoinGeckoExhcnageTicker } from '../../lib/crypto3partyAPI/coingecko/ICoingecko';
 import { useGlobalStore } from '@/app/hook/useGlobalStore';
@@ -19,8 +19,11 @@ import CoinVolume from './CoinVolume';
 import LoadingComp from '../LoadingComp';
 import CoinPriceDetail from './CoinPriceDetail';
 import { AdvancedRealTimeChart, AdvancedRealTimeChartProps } from "react-ts-tradingview-widgets";
-import { Col, Divider, Row } from 'antd';
+import { Col, Divider, Row, Select } from 'antd';
 import _ from 'lodash'
+import CoinHighLowPrice from './CoinHighLowPrice';
+import Icon, { SearchOutlined } from '@ant-design/icons';
+import CustomTag from '../CustomTag';
 
 interface DataType {
   id: string;
@@ -29,6 +32,7 @@ interface DataType {
   symbol: string,
   coinPair: string,
   price: number;
+  preClosingPrice: number;
   askBid: number;
   change?: number;
   change_24h?: number;
@@ -38,6 +42,10 @@ interface DataType {
   accVolume_24h?: number,
   accTradePrice?: number,
   accTradePrice_24h?: number,
+  high?: number,
+  high_24h?: number,
+  low?: number,
+  low_24h?: number,
   favorite: boolean,
   symbolImg: string | undefined,
 }
@@ -70,10 +78,12 @@ const CoinPriceTable: React.FC = () => {
   const [detailOpen, setDetailOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [rowData, setRowData] = useState<DataType[]>([]);
-  const selectedMarket = useRef<SelectedExchangeMarket>({exchange: EXCHANGE.UPBIT, market: MARKET.KRW})
+  // const selectedMarket = useRef<SelectedExchangeMarket>({exchange: EXCHANGE.UPBIT, market: MARKET.KRW})
+  const selectedMarket = useRef<SelectedExchangeMarket>({exchange: EXCHANGE.BINANCE, market: MARKET.USDT})
   const wsRef = useRef<Map<EXCHANGE, any>>(new Map<EXCHANGE, any>())
   const gridRef = useRef<any>();
   const isMountRef = useRef(false)
+  const filterRef = useRef<string[]>([])
 
   const upbitDataTableRef = useRef<Map<MARKET, DataType[]>>(new Map<MARKET, DataType[]>())
   const bithumbDataTableRef = useRef<Map<MARKET, DataType[]>>(new Map<MARKET, DataType[]>())
@@ -81,11 +91,12 @@ const CoinPriceTable: React.FC = () => {
   const bybitDataTableRef = useRef<Map<MARKET, DataType[]>>(new Map<MARKET, DataType[]>())
   
   const columnDefs: any = [
-    { headerName: '이름', field: 'symbol', minWidth: 150, cellRenderer: CoinTitle, getQuickFilterText: (params: any) => { return params?.data?.symbol }},
+    { headerName: '이름', field: 'symbol', minWidth: 150, cellRenderer: CoinTitle, filter: true, readOnly: true, suppressMenu: true, filterParams: { maxNumConditions: 50}},
     { headerName: '현재가격', field: 'price', minWidth: 120, headerClass: 'ag-header-right', cellRenderer: CoinPrice },
     { headerName: '가격변동', field: 'changeRate', minWidth: 100, headerClass: 'ag-header-right', cellRenderer: CoinChangePrice},    
+    { headerName: '최고/최저', field: 'highLowPrice', minWidth: 100, headerClass: 'ag-header-right', cellRenderer: CoinHighLowPrice},    
     { headerName: '누적거래량', field: 'accTradePrice_24h', minWidth: 120, headerClass: 'ag-header-right', cellRenderer: CoinVolume},
-    { headerName: '관심코인', field: 'favorite', minWidth: 100, headerClass: 'ag-header-center', cellRenderer: Favorite},
+    { headerName: '', field: 'favorite', minWidth: 50, headerClass: 'ag-header-center', cellRenderer: Favorite},
   ];
 
   useEffect(() => {
@@ -93,7 +104,9 @@ const CoinPriceTable: React.FC = () => {
       return;
     }
     isMountRef.current = true;
-    selectedMarket.current = {exchange: EXCHANGE.UPBIT, market: MARKET.KRW};
+    filterRef.current = [];
+    //selectedMarket.current = {exchange: EXCHANGE.UPBIT, market: MARKET.KRW};
+    selectedMarket.current = {exchange: EXCHANGE.BINANCE, market: MARKET.USDT};
     initialize();
     return () => {
       try {
@@ -109,8 +122,6 @@ const CoinPriceTable: React.FC = () => {
 
   const setSelectedRowData = () => {
     if (selectedMarket.current.exchange === EXCHANGE.UPBIT) {
-      console.log("selectedMarket.current.market: ", selectedMarket.current.market)
-      console.log("setSelectedRowData: ", upbitDataTableRef.current.get(selectedMarket.current.market))
       setRowData([...upbitDataTableRef.current.get(selectedMarket.current.market) ?? []]);
     } else if (selectedMarket.current.exchange === EXCHANGE.BITHUMB) {
       setRowData([...bithumbDataTableRef.current.get(selectedMarket.current.market) ?? []]);
@@ -134,11 +145,12 @@ const CoinPriceTable: React.FC = () => {
   const createDataType = (aggTradeInfo: IAggTradeInfo) => {
     const data: DataType = {
       id: `${aggTradeInfo.exchange}_${aggTradeInfo.market}_${aggTradeInfo.coinPair}`,
-      exchange: EXCHANGE.UPBIT,
+      exchange: aggTradeInfo.exchange,
       market: aggTradeInfo.market,
       symbol: aggTradeInfo.symbol,
       coinPair: aggTradeInfo.coinPair,
       price: aggTradeInfo.price,
+      preClosingPrice: aggTradeInfo.preClosingPrice,
       askBid: aggTradeInfo.askBid,
       change: aggTradeInfo.change,
       change_24h: aggTradeInfo.change_24h,
@@ -148,6 +160,10 @@ const CoinPriceTable: React.FC = () => {
       accVolume_24h: aggTradeInfo.accVolume_24h,
       accTradePrice: aggTradeInfo.accTradePrice,
       accTradePrice_24h: aggTradeInfo.accTradePrice_24h,
+      high: aggTradeInfo.high,
+      high_24h: aggTradeInfo.high_24h,
+      low: aggTradeInfo.low,
+      low_24h: aggTradeInfo.low_24h,
       favorite: false,
       symbolImg: state.symbolImgMap.get(aggTradeInfo.symbol)?.path ?? undefined,
     }
@@ -157,7 +173,66 @@ const CoinPriceTable: React.FC = () => {
   const initialize = async () => {
     let promises: any = []
     promises.push(initUpbitWebSocket());
+    promises.push(initBinanceWebSocket());
     await Promise.all(promises);
+  }
+
+  const initBinanceWebSocket = async () => {    
+    let codes: string[] = Array.from(state.exchangeConinInfos.get(EXCHANGE.BINANCE)?.keys() ?? []);
+    codes = ["BTCUSDT", "ETHUSDT"]
+    const ws = await startWebsocket(WS_TYPE.BINANCE_TICKER, codes, (aggTradeInfos: IAggTradeInfo[]) => {
+      // console.log("aggTradeInfos: ", aggTradeInfos)
+      if (aggTradeInfos?.length > 1) {
+        aggTradeInfos.forEach((aggTradeInfo: IAggTradeInfo) => {
+          let index = binanceDataTableRef.current.get(aggTradeInfo.market)?.findIndex((data: DataType) => {
+            return (data.coinPair === aggTradeInfo.coinPair && data.exchange === aggTradeInfo.exchange && data.market === aggTradeInfo.market)
+          })
+          // console.log(state.symbolImgMap.get(aggTradeInfo.symbol))
+          const data: DataType = createDataType(aggTradeInfo);
+          let newDataTable = binanceDataTableRef.current.get(data.market) ?? [];
+          if (index === undefined || index === -1) {
+            newDataTable.push(data)
+          } else {        
+            newDataTable[index] = data;
+          }
+          binanceDataTableRef.current.set(data.market, newDataTable);
+        })
+        setSelectedRowData();
+        setIsLoading(false);
+        gridRef?.current?.api?.sizeColumnsToFit();
+        gridRef?.current?.api?.hideOverlay();
+        return;
+      }
+      
+      aggTradeInfos.forEach((aggTradeInfo: IAggTradeInfo) => {
+        let index = binanceDataTableRef.current.get(aggTradeInfo.market)?.findIndex((data: DataType) => {
+          return (data.coinPair === aggTradeInfo.coinPair && data.exchange === aggTradeInfo.exchange && data.market === aggTradeInfo.market)
+        })
+        // console.log(state.symbolImgMap.get(aggTradeInfo.symbol))
+        const data: DataType = createDataType(aggTradeInfo);
+        let preData = null;
+        let newDataTable = binanceDataTableRef.current.get(data.market) ?? [];
+        if (index === undefined || index === -1) {
+          newDataTable.push(data)
+        } else {        
+          preData = {...newDataTable[index]}
+          newDataTable[index] = data;
+        }      
+        binanceDataTableRef.current.set(data.market, newDataTable);
+        if (selectedMarket.current.exchange !== data.exchange || selectedMarket.current.market !== data.market) {
+          return;
+        }
+        const rowNode = gridRef?.current?.api?.getRowNode(data.id);
+        if (!rowNode) { return; }
+        rowNode.setData(data);          
+        if (preData) {
+          if (preData.price != data.price) {
+            gridRef?.current?.api?.flashCells({rowNodes: [rowNode], flashDelay: 400, fadeDelay: 100,})
+          }
+        }
+      })
+    })
+    wsRef.current.set(EXCHANGE.BINANCE, ws);
   }
 
   const initUpbitWebSocket = async () => {
@@ -186,43 +261,63 @@ const CoinPriceTable: React.FC = () => {
         return;
       }
       
-      let aggTradeInfo = aggTradeInfos[0]
-      let index = upbitDataTableRef.current.get(aggTradeInfo.market)?.findIndex((data: DataType) => {
-        return (data.coinPair === aggTradeInfo.coinPair && data.exchange === aggTradeInfo.exchange && data.market === aggTradeInfo.market)
-      })
-      // console.log(state.symbolImgMap.get(aggTradeInfo.symbol))
-      const data: DataType = createDataType(aggTradeInfo);
-      let preData = null;
-      let newDataTable = upbitDataTableRef.current.get(data.market) ?? [];
-      if (index === undefined || index === -1) {
-        newDataTable.push(data)
-      } else {        
-        preData = {...newDataTable[index]}
-        newDataTable[index] = data;
-      }      
-      upbitDataTableRef.current.set(data.market, newDataTable);
-      if (selectedMarket.current.exchange !== data.exchange || selectedMarket.current.market !== data.market) {
-        return;
-      }
-      const rowNode = gridRef?.current?.api?.getRowNode(data.id);
-      if (!rowNode) { return; }
-      rowNode.setData(data);          
-      if (preData) {
-        if (preData.price != data.price) {
-          gridRef?.current?.api?.flashCells({rowNodes: [rowNode], flashDelay: 400, fadeDelay: 100,})
+      aggTradeInfos.forEach((aggTradeInfo: IAggTradeInfo) => {
+        let index = upbitDataTableRef.current.get(aggTradeInfo.market)?.findIndex((data: DataType) => {
+          return (data.coinPair === aggTradeInfo.coinPair && data.exchange === aggTradeInfo.exchange && data.market === aggTradeInfo.market)
+        })
+        // console.log(state.symbolImgMap.get(aggTradeInfo.symbol))
+        const data: DataType = createDataType(aggTradeInfo);
+        let preData = null;
+        let newDataTable = upbitDataTableRef.current.get(data.market) ?? [];
+        if (index === undefined || index === -1) {
+          newDataTable.push(data)
+        } else {        
+          preData = {...newDataTable[index]}
+          newDataTable[index] = data;
+        }      
+        upbitDataTableRef.current.set(data.market, newDataTable);
+        if (selectedMarket.current.exchange !== data.exchange || selectedMarket.current.market !== data.market) {
+          return;
         }
-      }
-      
+        const rowNode = gridRef?.current?.api?.getRowNode(data.id);
+        if (!rowNode) { return; }
+        rowNode.setData(data);          
+        if (preData) {
+          if (preData.price != data.price) {
+            gridRef?.current?.api?.flashCells({rowNodes: [rowNode], flashDelay: 400, fadeDelay: 100,})
+          }
+        }
+      })
     })
     wsRef.current.set(EXCHANGE.UPBIT, ws);
   }
 
-  const onFilterTextBoxChanged = useCallback(() => {
-    const input = document.getElementById('filter-text-box') as HTMLInputElement | null;
-    if (input != null) {
-      const value = input.value;
-      gridRef?.current?.api?.setQuickFilter(input.value);
+  const onFilterTagChanged = useCallback((tags: any) => {
+    console.log("onFilterTagChanged: ", tags)
+    let filters: IFilterCondition[] = []
+    tags?.forEach((tag: string) => {
+      filters.push({
+        filterType: "text",
+        type: "contains",
+        filter: tag
+      },)
+    })
+    const model: IFilterModel = {
+      symbol: {
+        filterType: "text",
+        operator: "OR",
+        conditions: filters,
+      }
     }
+    gridRef?.current?.api?.setFilterModel(model)
+    const savedModel = gridRef?.current?.api?.getFilterModel()
+    console.log("savedModel: ", savedModel)
+    filterRef.current = tags;
+    // const input = document.getElementById('filter-text-box') as HTMLInputElement | null;
+    // if (input != null) {
+    //   const value = input.value;
+    //   gridRef?.current?.api?.setQuickFilter(input.value);
+    // }
   }, []);
 
   const getRowId = useMemo(() => {
@@ -269,17 +364,29 @@ const CoinPriceTable: React.FC = () => {
             </div>
           </Col>    
           <Col span={10} style={{padding: 5}} className="ag-theme-alpine">
-            <input
+            {/* <input
               type="text"
               id="filter-text-box"
               placeholder="Filter..."
               onInput={onFilterTextBoxChanged}
-            />
+            /> */}
+            <div style={{display: 'flex', flexDirection: "row", width: "100%", height: "50px", backgroundColor: "grey", margin:0, padding: 0, justifyContent: "space-between", alignItems: "center"}}>
+              <Select
+                tagRender={CustomTag}
+                mode="tags"
+                style={{ backgroundColor: "transparent", color: "white", width: '100%'}}
+                placeholder="검색필터 TAG 추가"
+                bordered={false}
+                onChange={onFilterTagChanged}
+                className="table-select"
+                suffixIcon={<SearchOutlined style={{color: "whitesmoke", fontSize: "20px"}}/>}
+              />
+            </div>
             <AgGridReact
                 ref={gridRef}
                 rowData={rowData}
                 columnDefs={columnDefs}
-                defaultColDef={{ sortable: true, resizable: false }}
+                defaultColDef={{ sortable: true, resizable: false}}
                 cacheQuickFilter={true}
                 onGridReady={onGridReady}
                 getRowId={getRowId}

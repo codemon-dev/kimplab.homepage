@@ -1,36 +1,12 @@
 "use client"
 
-import WS from "ws"
 import { getInitialInfoUpbit, startOrderBookWebsocket, startTickerWebsocket, startTradeWebsocket } from "@/app/lib/exchange/upbit/upbitCtrl";
-import { getInitialInfoBinance, startWebSocket } from "../lib/exchange/binance/binanceCtrl";
+import { binance_spot_startTickerWebsocket, getInitialInfoBinance } from "../lib/exchange/binance/binanceCtrl";
 import { EXCHANGE, MARKET, WS_TYPE } from "@/config/enum";
 import { IAggTradeInfo, IExchangeCoinInfo, IOrderBook } from "@/config/interface";
 
 function useExchange() {
     let socketMap: Map<string, any> = new Map<string, any>();
-
-    let upbit_trade: Map<string, IAggTradeInfo> = new Map<string, IAggTradeInfo>();
-    let upbit_orderbook: Map<string, IOrderBook> = new Map<string, IOrderBook>();
-    let bithumb_trade: Map<string, IAggTradeInfo> = new Map<string, IAggTradeInfo>();
-    let bithumb_orderbook: Map<string, IOrderBook> = new Map<string, IOrderBook>();
-    let binance_trade: Map<string, IAggTradeInfo> = new Map<string, IAggTradeInfo>();
-    let binance_orderbook: Map<string, IOrderBook> = new Map<string, IOrderBook>();
-    let bybit_trade: Map<string, IAggTradeInfo> = new Map<string, IAggTradeInfo>();
-    let bybit_orderbook: Map<string, IOrderBook> = new Map<string, IOrderBook>();
-
-    const wsOptions = {
-        WebSocket: WS,
-        maxReconnectionDelay: 10000,
-        minReconnectionDelay: 1000 + Math.random() * 4000,
-        reconnectionDelayGrowFactor: 1.3,
-        minUptime: 5000,
-        connectionTimeout: 4000,
-        maxRetries: Infinity,
-        maxEnqueuedMessages: Infinity,
-        startClosed: false,
-        debug: false,
-    };
-
     const getInitialInfo = () => {        
         return new Promise(async (resolve) => {
             let exchangeConinInfos: Map<EXCHANGE, Map<string, IExchangeCoinInfo>> = new Map<EXCHANGE, Map<string, IExchangeCoinInfo>>();
@@ -58,24 +34,39 @@ function useExchange() {
         if (!codes || codes.length === 0) { 
             return null 
         }
+        const wsOptions = {
+            WebSocket: WebSocket,
+            maxReconnectionDelay: 10000,
+            minReconnectionDelay: 1000 + Math.random() * 4000,
+            reconnectionDelayGrowFactor: 1.3,
+            minUptime: 5000,
+            connectionTimeout: 4000,
+            maxRetries: Infinity,
+            maxEnqueuedMessages: Infinity,
+            startClosed: false,
+            debug: false,
+        };
         return new Promise(async (resolve) => {
             if (type === WS_TYPE.UPBIT_TICKER) {
-                const ws = startTickerWebsocket(codes, (res: IAggTradeInfo[]) => { 
+                const ws = startTickerWebsocket(codes, wsOptions, (res: IAggTradeInfo[]) => { 
                     if (listener) { listener(res) }
                     // if (res) { upbit_trade.set(res.coinPair, res) }
                 });
                 resolve(ws);
             } else if (type === WS_TYPE.UPBIT_TRADE) {
                 if (codes.length === 0) { resolve(null) }
-                const ws = startTradeWebsocket(codes, (res: IAggTradeInfo) => { 
+                const ws = startTradeWebsocket(codes, wsOptions, (res: IAggTradeInfo) => { 
                     if (listener) { listener(res) }
-                    if (res) { upbit_trade.set(res.coinPair, res) }
                 });
                 resolve(ws);
             } else if (type === WS_TYPE.UPBIT_ORDER_BOOK) {
-                const ws = startOrderBookWebsocket(codes, (res: IOrderBook) => { 
+                const ws = startOrderBookWebsocket(codes, wsOptions, (res: IOrderBook) => { 
                     if (listener) { listener(res) }
-                    if (res) { upbit_orderbook.set(res.coinPair, res) }
+                });
+                resolve(ws);
+            } else if (type === WS_TYPE.BINANCE_TICKER) {
+                const ws = binance_spot_startTickerWebsocket(codes, wsOptions, (res: IAggTradeInfo[]) => { 
+                    if (listener) { listener(res) }
                 });
                 resolve(ws);
             }
@@ -86,14 +77,6 @@ function useExchange() {
         getInitialInfo, 
         startWebsocket,
         socketMap,
-        upbit_trade,
-        upbit_orderbook,
-        bithumb_trade,
-        bithumb_orderbook,
-        binance_trade,
-        binance_orderbook,
-        bybit_trade,
-        bybit_orderbook,
     }
 }
 

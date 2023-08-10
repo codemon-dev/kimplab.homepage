@@ -31,3 +31,8 @@
     justify-content: center;
   }
 }
+
+
+.ant-select-selection-placeholder{
+  color : whitesmoke !important;
+}

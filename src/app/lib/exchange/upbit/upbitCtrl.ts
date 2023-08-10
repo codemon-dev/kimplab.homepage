@@ -1,7 +1,6 @@
 "use client"
 
 import jwt from "jsonwebtoken";
-import WS from "ws"
 import { v4 as uuidv4 } from "uuid";
 import crypto from 'crypto';
 import { ASK_BID, EXCHANGE, FETCH_METHOD, MARKET } from "@/config/enum";
@@ -58,7 +57,7 @@ export const isPongResponse = (object: any): object is UPBIT_PONG_RESPONSE => {
     return 'status' in object;
 }
 
-export const startTickerWebsocket = (coinPairs: string[], listener: any) => {
+export const startTickerWebsocket = (coinPairs: string[], options: any, listener: any) => {
     const format = 'SIMPLE'
     let ws: ReconnectingWebSocket | undefined;
     let payload: UpbitSocketPayload = {
@@ -67,19 +66,6 @@ export const startTickerWebsocket = (coinPairs: string[], listener: any) => {
         isOnlySnapshot: false,
         isOnlyRealtime: false,
     }
-    
-    const options = {
-        WebSocket: WebSocket,
-        maxReconnectionDelay: 10000,
-        minReconnectionDelay: 1000 + Math.random() * 4000,
-        reconnectionDelayGrowFactor: 1.3,
-        minUptime: 5000,
-        connectionTimeout: 4000,
-        maxRetries: Infinity,
-        maxEnqueuedMessages: Infinity,
-        startClosed: false,
-        debug: false,
-    };
     
     const UUID = uuidv4()
     let ticket: string = ""
@@ -110,6 +96,8 @@ export const startTickerWebsocket = (coinPairs: string[], listener: any) => {
                         askBid: res.ab === "ASK"? ASK_BID.ASK: ASK_BID.BID,    
                         change: res.scp,
                         changeRate: res.scr * 100,
+                        high: res.hp,
+                        low: res.lp,
                         timestamp: res.ttms
                     }
                     if (res.st === "SNAPSHOT") {
@@ -129,7 +117,7 @@ export const startTickerWebsocket = (coinPairs: string[], listener: any) => {
         }
     })
     ws.onopen = (event) => {
-        console.log("onopen", event)
+        console.log("[UPBIT] onopen", event)
         try {
             // console.log(`${JSON.stringify([{ ticket: ticket }, { ...payload }, { format }])}`)
             ws?.send(`${JSON.stringify([{ ticket: ticket }, { ...payload }, { format }])}`)
@@ -140,7 +128,7 @@ export const startTickerWebsocket = (coinPairs: string[], listener: any) => {
     };
     ws.onerror = (event) => {
         try {
-            console.log("onerror", event)
+            console.log("[UPBIT] onerror", event)
         } catch (err: any) {
             console.error("[UPBIT] tickerWS.onerror err: ", err)
         }
@@ -148,7 +136,7 @@ export const startTickerWebsocket = (coinPairs: string[], listener: any) => {
     };
     ws.onclose = (event) => {
         try {
-            console.log("onclose", event)
+            console.log("[UPBIT] onclose", event)
         } catch (err: any) {
             console.error("[UPBIT] tickerWS.onclose err: ", err)
         }
@@ -156,7 +144,7 @@ export const startTickerWebsocket = (coinPairs: string[], listener: any) => {
     return ws;
 }
 
-export const startTradeWebsocket = (coinPairs: string[], listener: any) => {
+export const startTradeWebsocket = (coinPairs: string[], options: any, listener: any) => {
     const format = 'SIMPLE'
     let tradeWS: ReconnectingWebSocket | undefined;
     let payload: UpbitSocketPayload = {
@@ -165,19 +153,6 @@ export const startTradeWebsocket = (coinPairs: string[], listener: any) => {
         isOnlySnapshot: false,
         isOnlyRealtime: false,
     }
-    
-    const options = {
-        WebSocket: WebSocket,
-        maxReconnectionDelay: 10000,
-        minReconnectionDelay: 1000 + Math.random() * 4000,
-        reconnectionDelayGrowFactor: 1.3,
-        minUptime: 5000,
-        connectionTimeout: 4000,
-        maxRetries: Infinity,
-        maxEnqueuedMessages: Infinity,
-        startClosed: false,
-        debug: false,
-    };
     
     const UUID = uuidv4()
     let ticket: string = ""
@@ -199,7 +174,7 @@ export const startTradeWebsocket = (coinPairs: string[], listener: any) => {
         }
     })
     tradeWS.onopen = (event) => {
-        console.log("onopen", event)
+        console.log("[UPBIT] onopen", event)
         try {
             // console.log(`${JSON.stringify([{ ticket: ticket }, { ...payload }, { format }])}`)
             tradeWS?.send(`${JSON.stringify([{ ticket: ticket }, { ...payload }, { format }])}`)
@@ -210,7 +185,7 @@ export const startTradeWebsocket = (coinPairs: string[], listener: any) => {
     };
     tradeWS.onerror = (event) => {
         try {
-            console.log("onerror", event)
+            console.log("[UPBIT] onerror", event)
         } catch (err: any) {
             console.error("[UPBIT] tradeWS.onerror err: ", err)
         }
@@ -218,7 +193,7 @@ export const startTradeWebsocket = (coinPairs: string[], listener: any) => {
     };
     tradeWS.onclose = (event) => {
         try {
-            console.log("onclose", event)
+            console.log("[UPBIT] onclose", event)
         } catch (err: any) {
             console.error("[UPBIT] tradeWS.onclose err: ", err)
         }
@@ -226,7 +201,7 @@ export const startTradeWebsocket = (coinPairs: string[], listener: any) => {
     return tradeWS;
 }
 
-export const startOrderBookWebsocket = (coinPairs: string[], listener: any) => {
+export const startOrderBookWebsocket = (coinPairs: string[], options: any, listener: any) => {
     const format = 'SIMPLE'
     let orderbookWs: ReconnectingWebSocket | undefined;
     let payload: UpbitSocketPayload = {
@@ -234,20 +209,7 @@ export const startOrderBookWebsocket = (coinPairs: string[], listener: any) => {
         codes: coinPairs,
         isOnlySnapshot: false,
         isOnlyRealtime: false,
-    }
-    
-    const options = {
-        WebSocket: WebSocket,
-        maxReconnectionDelay: 10000,
-        minReconnectionDelay: 1000 + Math.random() * 4000,
-        reconnectionDelayGrowFactor: 1.3,
-        minUptime: 5000,
-        connectionTimeout: 4000,
-        maxRetries: Infinity,
-        maxEnqueuedMessages: Infinity,
-        startClosed: false,
-        debug: false,
-    };
+    }    
     
     const UUID = uuidv4()
     let ticket: string = ""
@@ -271,7 +233,7 @@ export const startOrderBookWebsocket = (coinPairs: string[], listener: any) => {
         }
     })
     orderbookWs.onopen = (event) => {
-        console.log("onopen", event)
+        console.log("[UPBIT] onopen", event)
         try {
             // console.log(`${JSON.stringify([{ ticket: ticket }, { ...payload }, { format }])}`)
             orderbookWs?.send(`${JSON.stringify([{ ticket: ticket }, { ...payload }, { format }])}`)
@@ -282,7 +244,7 @@ export const startOrderBookWebsocket = (coinPairs: string[], listener: any) => {
     };
     orderbookWs.onerror = (event) => {
         try {
-            console.log("onerror", event)
+            console.log("[UPBIT] onerror", event)
         } catch (err: any) {
             console.error("[UPBIT] orderbookWs.onerror err: ", err)
         }
@@ -290,7 +252,7 @@ export const startOrderBookWebsocket = (coinPairs: string[], listener: any) => {
     };
     orderbookWs.onclose = (event) => {
         try {
-            console.log("onclose", event)
+            console.log("[UPBIT]onclose", event)
         } catch (err: any) {
             console.error("[UPBIT] orderbookWs.onclose err: ", err)
         }

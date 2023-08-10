@@ -34,7 +34,7 @@ export const NavBar = () => {
 
     const onClick: MenuProps['onClick'] = (e) => {
         if (e.key === 'home') {
-            //router.push('/')
+            router.push('/')
         } else {
             router.push(`/${e.key}`)
         }

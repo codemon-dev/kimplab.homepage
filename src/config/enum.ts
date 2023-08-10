@@ -22,9 +22,11 @@ export enum MARKET {
     KRW = "KRW",
     USD = "USD",
     USDT = "USDT",    
-    BUSD = "BUSD",
+    USDC = "USDC",
+    TUSD = "TUSD",
+    BUSD = "BUSD",    
     USDT_PERP = "USDT_PERP",
-    BUSD_PERP = "BUSD_PERP",
+    USD_PERP = "USD_PERP",
     BTC = "BTC",
     ETH = "ETH",
     BNB = "BNB",
@@ -34,11 +36,13 @@ export enum WS_TYPE {
     UPBIT_TICKER = "UPBIT_TICKER",
     UPBIT_TRADE = "UPBIT_TRADE",
     UPBIT_ORDER_BOOK = "UPBIT_ORDER_BOOK",
+    BINANCE_TICKER = "BINANCE_TICKER"
 }
 
 export enum ASK_BID {
-    ASK = 0,    // 매도
-    BID = 1,    // 매수
+    NONE,
+    ASK,    // 매도
+    BID,    // 매수
 }
 
 export enum IMG_TYPE {

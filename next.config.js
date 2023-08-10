@@ -17,6 +17,10 @@ const rewrites = async () => {
             destination: "https://api.binance.com/api/v3/exchangeInfo"
         },
         {
+            source: "/binance_ticker",
+            destination: "https://api.binance.com/api/v3/ticker/24hr"
+        },
+        {
             source: "/coingecko_exchange_tickers",
             destination: "https://api.coingecko.com/api/v3/exchanges/upbit/tickers"
         },
