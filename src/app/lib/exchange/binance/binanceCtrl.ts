@@ -117,7 +117,7 @@ export const binance_spot_startTickerWebsocket = async (codes: string[], options
     for (const ticker of tickerRes) {   
         const {symbol, coinPair, market} = parseCoinInfoFromCoinPair(EXCHANGE.BINANCE, ticker.symbol)        
         if (!symbol || symbol === "" || parseFloat(ticker.lastPrice) === 0) {
-            console.log("skip ticker: ", ticker)
+            // console.log("skip ticker: ", ticker)
             continue;
         }
         let aggTradeInfo: IAggTradeInfo = {

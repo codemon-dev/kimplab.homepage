@@ -16,10 +16,10 @@ export const CoinHighLowPrice = (props: any) => {
         let high = props?.data?.high? props?.data?.high: props?.data?.high_24h;
         let low = props?.data?.low? props?.data?.low: props?.data?.low_24h;
         let price = props?.data?.price;
-        let highRate = ((price / high) - 1).toFixed(2);
-        let lowRate = ((price / low) - 1).toFixed(2);
-        setHighRate(`${highRate}`)
-        setLowRate(`${lowRate}`)
+        let highRate = (((price / high) - 1) * 100).toFixed(2);
+        let lowRate = (((price / low) - 1) * 100).toFixed(2);
+        setHighRate(`${highRate}%`)
+        setLowRate(`${lowRate}%`)
         if (high > preCloseingPrice) {
             setHighColor("#f23645")
         } else if (high < preCloseingPrice) {
@@ -43,13 +43,13 @@ export const CoinHighLowPrice = (props: any) => {
         <div style={{display: 'flex', flexDirection: "column", alignItems: "flex-end", justifyContent: "center", height: '50px', margin: 0, padding: 0}}>
             <div style={{display: 'flex', flexDirection: "row", height: '25px', margin: 0, padding: 0}}>
                 <Text style={{color: highColor, fontSize: '14px', margin: 0, padding: 0, gap: 0}}>{high}</Text>
-                <Text style={{fontSize: '14px', margin: "0px 5px", padding: 0, gap: 0}}> / </Text>
+                <Text style={{display: (high && low)? "block": "none", fontSize: '14px', margin: "0px 5px", padding: 0, gap: 0}}> / </Text>
                 <Text style={{color: lowColor, fontSize: '14px', margin: 0, padding: 0, gap: 0}}>{low}</Text>
             </div>
             <div style={{display: 'flex', flexDirection: "row", height: '25px', margin: 0, padding: 0}}>
-                <Text style={{color: "#089981", fontSize: '14px', margin: 0, padding: 0, gap: 0}}>{highRate}%</Text>
-                <Text style={{fontSize: '14px', margin: "0px 5px", padding: 0, gap: 0}}> / </Text>
-                <Text style={{color: "#f23645", fontSize: '14px', margin: 0, padding: 0, gap: 0}}>{lowRate}%</Text>
+                <Text style={{color: "#089981", fontSize: '14px', margin: 0, padding: 0, gap: 0}}>{highRate}</Text>
+                <Text style={{display: (highRate && lowRate)? "block": "none", fontSize: '14px', margin: "0px 5px", padding: 0, gap: 0}}> / </Text>
+                <Text style={{color: "#f23645", fontSize: '14px', margin: 0, padding: 0, gap: 0}}>{lowRate}</Text>
             </div>
             
         </div>
