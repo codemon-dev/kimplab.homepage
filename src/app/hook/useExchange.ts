@@ -30,10 +30,7 @@ function useExchange() {
         })
     }
 
-    const startWebsocket = (type: WS_TYPE, codes: string[], listener?: any) => {
-        if (!codes || codes.length === 0) { 
-            return null 
-        }
+    const startWebsocket = (type: WS_TYPE, codes: string[], listener?: any) => {        
         const wsOptions = {
             WebSocket: WebSocket,
             maxReconnectionDelay: 10000,

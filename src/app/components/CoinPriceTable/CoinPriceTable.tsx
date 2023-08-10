@@ -19,11 +19,13 @@ import CoinVolume from './CoinVolume';
 import LoadingComp from '../LoadingComp';
 import CoinPriceDetail from './CoinPriceDetail';
 import { AdvancedRealTimeChart, AdvancedRealTimeChartProps } from "react-ts-tradingview-widgets";
-import { Col, Divider, Row, Select } from 'antd';
+import { Button, Col, Divider, Row, Select, Space } from 'antd';
 import _ from 'lodash'
 import CoinHighLowPrice from './CoinHighLowPrice';
-import Icon, { SearchOutlined } from '@ant-design/icons';
+import Icon, { SearchOutlined, SettingOutlined } from '@ant-design/icons';
 import CustomTag from '../CustomTag';
+import { ExchangeDefaultInfo } from '@/config/constants';
+
 
 interface DataType {
   id: string;
@@ -70,6 +72,11 @@ const defaultAdvancedRealTimeChartProps: AdvancedRealTimeChartProps = {
     // copyrightStyles: CopyrightStyles;
 } 
 
+interface IOption {
+  value: string, 
+  lable: string
+}
+
 const CoinPriceTable: React.FC = () => {
   const {state} = useGlobalStore()
   const advancedRealTimeChartPropsRef = useRef(defaultAdvancedRealTimeChartProps)
@@ -79,34 +86,49 @@ const CoinPriceTable: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [rowData, setRowData] = useState<DataType[]>([]);
   // const selectedMarket = useRef<SelectedExchangeMarket>({exchange: EXCHANGE.UPBIT, market: MARKET.KRW})
-  const selectedMarket = useRef<SelectedExchangeMarket>({exchange: EXCHANGE.BINANCE, market: MARKET.USDT})
+  const selectedRef = useRef<SelectedExchangeMarket>({exchange: EXCHANGE.BINANCE, market: MARKET.USDT})
+  const [selectedExchange, setSelectedExchange] = useState<EXCHANGE>(selectedRef.current.exchange)
+  const [selectedMarket, setSelectedMarket] = useState<MARKET>(selectedRef.current.market)  
+  const [marketOptions, setMarketOptions] = useState<IOption[]>([])
   const wsRef = useRef<Map<EXCHANGE, any>>(new Map<EXCHANGE, any>())
   const gridRef = useRef<any>();
   const isMountRef = useRef(false)
-  const filterRef = useRef<string[]>([])
+  const filterRef = useRef<string[]>([])  
 
   const upbitDataTableRef = useRef<Map<MARKET, DataType[]>>(new Map<MARKET, DataType[]>())
   const bithumbDataTableRef = useRef<Map<MARKET, DataType[]>>(new Map<MARKET, DataType[]>())
   const binanceDataTableRef = useRef<Map<MARKET, DataType[]>>(new Map<MARKET, DataType[]>())
   const bybitDataTableRef = useRef<Map<MARKET, DataType[]>>(new Map<MARKET, DataType[]>())
+  const filterOptionRef = useRef<{value: string, lable: string}[]>([])  
+  const [filterOption, setFilterOption] = useState<{value: string, lable: string}[]>(filterOptionRef.current)
   
   const columnDefs: any = [
-    { headerName: '이름', field: 'symbol', minWidth: 150, cellRenderer: CoinTitle, filter: true, readOnly: true, suppressMenu: true, filterParams: { maxNumConditions: 50}},
+    { headerName: '이름', field: 'symbol', minWidth: 160, cellRenderer: CoinTitle, filter: true, suppressMenu: true, filterParams: { maxNumConditions: 50, readOnly: true }},
     { headerName: '현재가격', field: 'price', minWidth: 120, headerClass: 'ag-header-right', cellRenderer: CoinPrice },
     { headerName: '가격변동', field: 'changeRate', minWidth: 100, headerClass: 'ag-header-right', cellRenderer: CoinChangePrice},    
-    { headerName: '최고/최저', field: 'highLowPrice', minWidth: 100, headerClass: 'ag-header-right', cellRenderer: CoinHighLowPrice},    
+    { headerName: '최고/최저', field: 'highLowPrice', minWidth: 150, headerClass: 'ag-header-right', cellRenderer: CoinHighLowPrice},    
     { headerName: '누적거래량', field: 'accTradePrice_24h', minWidth: 120, headerClass: 'ag-header-right', cellRenderer: CoinVolume},
     { headerName: '', field: 'favorite', minWidth: 50, headerClass: 'ag-header-center', cellRenderer: Favorite},
   ];
+
+  const exchangeList: IOption[] = [
+    ExchangeDefaultInfo.upbit.exchange,
+    ExchangeDefaultInfo.bithumb.exchange,
+    ExchangeDefaultInfo.binance.exchange,
+    ExchangeDefaultInfo.bybit.exchange,
+  ]  
+
+  let exhcnageInfoMap: Map<EXCHANGE, IOption[]> = new Map<EXCHANGE, IOption[]>();
+  exhcnageInfoMap.set(EXCHANGE.UPBIT, ExchangeDefaultInfo.upbit.markets)
+  exhcnageInfoMap.set(EXCHANGE.BITHUMB, ExchangeDefaultInfo.bithumb.markets)
+  exhcnageInfoMap.set(EXCHANGE.BINANCE, ExchangeDefaultInfo.binance.markets)
+  exhcnageInfoMap.set(EXCHANGE.BYBIT, ExchangeDefaultInfo.bybit.markets)
 
   useEffect(() => {
     if (isMountRef.current === true) {
       return;
     }
     isMountRef.current = true;
-    filterRef.current = [];
-    //selectedMarket.current = {exchange: EXCHANGE.UPBIT, market: MARKET.KRW};
-    selectedMarket.current = {exchange: EXCHANGE.BINANCE, market: MARKET.USDT};
     initialize();
     return () => {
       try {
@@ -120,16 +142,55 @@ const CoinPriceTable: React.FC = () => {
     }
   }, [])
 
-  const setSelectedRowData = () => {
-    if (selectedMarket.current.exchange === EXCHANGE.UPBIT) {
-      setRowData([...upbitDataTableRef.current.get(selectedMarket.current.market) ?? []]);
-    } else if (selectedMarket.current.exchange === EXCHANGE.BITHUMB) {
-      setRowData([...bithumbDataTableRef.current.get(selectedMarket.current.market) ?? []]);
-    } else if (selectedMarket.current.exchange === EXCHANGE.BINANCE) {
-      setRowData([...binanceDataTableRef.current.get(selectedMarket.current.market) ?? []]);
-    } else if (selectedMarket.current.exchange === EXCHANGE.BYBIT) {
-      setRowData([...bybitDataTableRef.current.get(selectedMarket.current.market) ?? []]);
+  const getFirstSymbolFromExchange = (exchange: EXCHANGE, market: MARKET) => {
+    let dataTypeList: DataType[] = []
+    if (exchange === EXCHANGE.UPBIT) {
+      dataTypeList = upbitDataTableRef.current.get(market) ?? [];
+    } else if (exchange === EXCHANGE.BITHUMB) {
+      dataTypeList = bithumbDataTableRef.current.get(market) ?? [];
+    } else if (exchange === EXCHANGE.BINANCE) {
+      dataTypeList = binanceDataTableRef.current.get(market) ?? [];
+    } else if (exchange === EXCHANGE.BYBIT) {
+      dataTypeList = bybitDataTableRef.current.get(market) ?? [];
     }
+    return dataTypeList[0]?.symbol;
+  }
+
+  const setSelectedRowData = () => {
+    if (selectedRef.current.exchange === EXCHANGE.UPBIT) {
+      setRowData([...upbitDataTableRef.current.get(selectedRef.current.market) ?? []]);
+      const dataTables: DataType[] = upbitDataTableRef.current.get(selectedRef.current.market) ?? []
+      let options: {value: string, lable: string}[]  = []
+      dataTables.forEach((data: DataType) => {
+        options.push({value: data.symbol, lable: data.symbol.toUpperCase()})
+      })
+      filterOptionRef.current = [...options];
+    } else if (selectedRef.current.exchange === EXCHANGE.BITHUMB) {
+      setRowData([...bithumbDataTableRef.current.get(selectedRef.current.market) ?? []]);
+      const dataTables: DataType[] = bithumbDataTableRef.current.get(selectedRef.current.market) ?? []
+      let options: {value: string, lable: string}[]  = []
+      dataTables.forEach((data: DataType) => {
+        options.push({value: data.symbol, lable: data.symbol.toUpperCase()})
+      })
+      filterOptionRef.current = [...options];
+    } else if (selectedRef.current.exchange === EXCHANGE.BINANCE) {
+      setRowData([...binanceDataTableRef.current.get(selectedRef.current.market) ?? []]);
+      const dataTables: DataType[] = binanceDataTableRef.current.get(selectedRef.current.market) ?? []
+      let options: {value: string, lable: string}[]  = []
+      dataTables.forEach((data: DataType) => {
+        options.push({value: data.symbol, lable: data.symbol.toUpperCase()})
+      })
+      filterOptionRef.current = [...options];
+    } else if (selectedRef.current.exchange === EXCHANGE.BYBIT) {
+      setRowData([...bybitDataTableRef.current.get(selectedRef.current.market) ?? []]);
+      const dataTables: DataType[] = bybitDataTableRef.current.get(selectedRef.current.market) ?? []
+      let options: {value: string, lable: string}[]  = []
+      dataTables.forEach((data: DataType) => {
+        options.push({value: data.symbol, lable: data.symbol.toUpperCase()})
+      })
+      filterOptionRef.current = [...options];
+    }
+    setFilterOption(filterOptionRef.current)
   }
 
   const onGridReady = useCallback(() => {
@@ -171,6 +232,10 @@ const CoinPriceTable: React.FC = () => {
   }
 
   const initialize = async () => {
+    filterRef.current = [];
+    //selectedMarket.current = {exchange: EXCHANGE.UPBIT, market: MARKET.KRW};
+    selectedRef.current = {exchange: EXCHANGE.BINANCE, market: MARKET.USDT};
+    setMarketOptions(ExchangeDefaultInfo.binance.markets)    
     let promises: any = []
     promises.push(initUpbitWebSocket());
     promises.push(initBinanceWebSocket());
@@ -179,7 +244,6 @@ const CoinPriceTable: React.FC = () => {
 
   const initBinanceWebSocket = async () => {    
     let codes: string[] = Array.from(state.exchangeConinInfos.get(EXCHANGE.BINANCE)?.keys() ?? []);
-    codes = ["BTCUSDT", "ETHUSDT"]
     const ws = await startWebsocket(WS_TYPE.BINANCE_TICKER, codes, (aggTradeInfos: IAggTradeInfo[]) => {
       // console.log("aggTradeInfos: ", aggTradeInfos)
       if (aggTradeInfos?.length > 1) {
@@ -208,7 +272,7 @@ const CoinPriceTable: React.FC = () => {
         let index = binanceDataTableRef.current.get(aggTradeInfo.market)?.findIndex((data: DataType) => {
           return (data.coinPair === aggTradeInfo.coinPair && data.exchange === aggTradeInfo.exchange && data.market === aggTradeInfo.market)
         })
-        // console.log(state.symbolImgMap.get(aggTradeInfo.symbol))
+        console.log(state.symbolImgMap.get(aggTradeInfo.symbol))
         const data: DataType = createDataType(aggTradeInfo);
         let preData = null;
         let newDataTable = binanceDataTableRef.current.get(data.market) ?? [];
@@ -219,7 +283,7 @@ const CoinPriceTable: React.FC = () => {
           newDataTable[index] = data;
         }      
         binanceDataTableRef.current.set(data.market, newDataTable);
-        if (selectedMarket.current.exchange !== data.exchange || selectedMarket.current.market !== data.market) {
+        if (selectedRef.current.exchange !== data.exchange || selectedRef.current.market !== data.market) {
           return;
         }
         const rowNode = gridRef?.current?.api?.getRowNode(data.id);
@@ -276,7 +340,7 @@ const CoinPriceTable: React.FC = () => {
           newDataTable[index] = data;
         }      
         upbitDataTableRef.current.set(data.market, newDataTable);
-        if (selectedMarket.current.exchange !== data.exchange || selectedMarket.current.market !== data.market) {
+        if (selectedRef.current.exchange !== data.exchange || selectedRef.current.market !== data.market) {
           return;
         }
         const rowNode = gridRef?.current?.api?.getRowNode(data.id);
@@ -293,7 +357,6 @@ const CoinPriceTable: React.FC = () => {
   }
 
   const onFilterTagChanged = useCallback((tags: any) => {
-    console.log("onFilterTagChanged: ", tags)
     let filters: IFilterCondition[] = []
     tags?.forEach((tag: string) => {
       filters.push({
@@ -311,7 +374,7 @@ const CoinPriceTable: React.FC = () => {
     }
     gridRef?.current?.api?.setFilterModel(model)
     const savedModel = gridRef?.current?.api?.getFilterModel()
-    console.log("savedModel: ", savedModel)
+    // console.log("savedModel: ", savedModel)
     filterRef.current = tags;
     // const input = document.getElementById('filter-text-box') as HTMLInputElement | null;
     // if (input != null) {
@@ -327,16 +390,43 @@ const CoinPriceTable: React.FC = () => {
     };
   }, []);
 
+  const changeTradingView = (exhcnage: EXCHANGE, symbol: string, market: string) => {
+    advancedRealTimeChartPropsRef.current = {...advancedRealTimeChartPropsRef.current, symbol: `${exhcnage}:${symbol}${market}`}
+    setAdvancedRealTimeChartProps(advancedRealTimeChartPropsRef.current)
+  }
+
   const onRowClicked = (event: any) => {
     console.log("onRowClicked. event: ", event)
     setDetailOpen(true);
-    advancedRealTimeChartPropsRef.current = {...advancedRealTimeChartPropsRef.current, symbol: `${event.data.exchange}:${event.data.symbol}${event.data.market}`}
-    setAdvancedRealTimeChartProps(advancedRealTimeChartPropsRef.current)
+    changeTradingView(event.data.exchange, event.data.symbol, event.data.market)
   }
 
   const onDetailClose = (event: any) => {
     setDetailOpen(false);
   }
+  
+  const handleExchangeChange = (exchange: EXCHANGE) => {
+    const marketOptions = exhcnageInfoMap.get(exchange) ?? []
+    selectedRef.current = {
+      exchange: exchange,
+      market: marketOptions[0].value as MARKET,
+    }
+    setSelectedRowData();    
+    changeTradingView(selectedRef.current.exchange, getFirstSymbolFromExchange(selectedRef.current.exchange, selectedRef.current.market), selectedRef.current.market)
+    setMarketOptions(marketOptions);
+    setSelectedExchange(selectedRef.current.exchange);
+    setSelectedMarket(selectedRef.current.market);
+  };
+
+  const handleMarketChange = (market: MARKET) => {
+    selectedRef.current = {
+      exchange: selectedRef.current.exchange,
+      market: market
+    }
+    setSelectedRowData();
+    changeTradingView(selectedRef.current.exchange, getFirstSymbolFromExchange(selectedRef.current.exchange, selectedRef.current.market), selectedRef.current.market)
+    setSelectedMarket(selectedRef.current.market)
+  };
 
   if (!rowData) {
     return null;
@@ -364,23 +454,33 @@ const CoinPriceTable: React.FC = () => {
             </div>
           </Col>    
           <Col span={10} style={{padding: 5}} className="ag-theme-alpine">
-            {/* <input
-              type="text"
-              id="filter-text-box"
-              placeholder="Filter..."
-              onInput={onFilterTextBoxChanged}
-            /> */}
-            <div style={{display: 'flex', flexDirection: "row", width: "100%", height: "50px", backgroundColor: "grey", margin:0, padding: 0, justifyContent: "space-between", alignItems: "center"}}>
+            <div style={{display: 'flex', flexDirection: "row", width: "100%", height: "50px", backgroundColor: "#192331", margin:0, padding: "0px 16px", justifyContent: "space-between", alignItems: "center"}}>
               <Select
                 tagRender={CustomTag}
                 mode="tags"
-                style={{ backgroundColor: "transparent", color: "white", width: '100%'}}
-                placeholder="검색필터 TAG 추가"
-                bordered={false}
+                style={{ backgroundColor: "transparent", margin: "0px 5px", padding: 0, flex: 1}}
+                placeholder="필터"
+                bordered={true}
                 onChange={onFilterTagChanged}
                 className="table-select"
-                suffixIcon={<SearchOutlined style={{color: "whitesmoke", fontSize: "20px"}}/>}
+                suffixIcon={<SearchOutlined style={{fontSize: "20px"}}/>}
+                options={filterOption}
+              />              
+              <Select
+                style={{ width: 160, margin: "0px 5px" }}
+                value={selectedExchange}
+                bordered={true}
+                onChange={handleExchangeChange}
+                options={exchangeList}
               />
+              <Select
+                style={{ width: 160, margin: "0px 5px" }}
+                value={selectedMarket}
+                bordered={true}
+                onChange={handleMarketChange}
+                options={marketOptions}
+              />
+              <Button shape="circle" style={{backgroundColor: 'whitesmoke', margin: "0px 5px"}} icon={<SettingOutlined style={{color: "#192331", fontSize: "20px"}}/>} />
             </div>
             <AgGridReact
                 ref={gridRef}

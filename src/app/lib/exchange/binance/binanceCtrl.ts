@@ -112,10 +112,12 @@ export const binance_spot_startTickerWebsocket = async (codes: string[], options
     }
     let aggTradeInfos: IAggTradeInfo[] = []
     let tickerRes: IBinanceTickerResponse[] = jsonData;
+    // console.log("reckerRes: ", tickerRes)
     const codesMap = new Map<string, string>()
     for (const ticker of tickerRes) {   
-        const {symbol, coinPair, market} = parseCoinInfoFromCoinPair(EXCHANGE.BINANCE, ticker.symbol)
+        const {symbol, coinPair, market} = parseCoinInfoFromCoinPair(EXCHANGE.BINANCE, ticker.symbol)        
         if (!symbol || symbol === "" || parseFloat(ticker.lastPrice) === 0) {
+            console.log("skip ticker: ", ticker)
             continue;
         }
         let aggTradeInfo: IAggTradeInfo = {
@@ -139,7 +141,6 @@ export const binance_spot_startTickerWebsocket = async (codes: string[], options
         aggTradeInfos.push(aggTradeInfo)
         codesMap.set(aggTradeInfo.coinPair, ticker.symbol);
     }
-    // console.log("aggTradeInfos: ", aggTradeInfos)
     listener(aggTradeInfos);
 
     let ws: ReconnectingWebSocket | undefined;

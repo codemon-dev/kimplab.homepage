@@ -18,9 +18,9 @@ export const parseCoinInfoFromCoinPair = (exchnage:EXCHANGE, coinPair: string, i
             }
         } else {
             for (const marketItem of ExchangeDefaultInfo.binance.markets) {
-                if (coinPair.endsWith(marketItem) === true) {
-                    symbol = coinPair.split(marketItem)[0];
-                    market = marketItem;
+                if (coinPair.endsWith(marketItem.value) === true) {
+                    symbol = coinPair.split(marketItem.value)[0];
+                    market = marketItem.value;
                     break;
                 }
             }

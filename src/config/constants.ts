@@ -5,11 +5,35 @@ import { EXCHANGE, MARKET } from "./enum";
 
 export const ExchangeDefaultInfo = {
     "upbit": {
-        exchange: EXCHANGE.UPBIT,
-        markets: [MARKET.KRW, MARKET.BTC, MARKET.USDT]
+        exchange: { value: EXCHANGE.UPBIT, lable: "업비트" },
+        markets: [
+            { value: MARKET.KRW, lable: MARKET.KRW },
+            { value: MARKET.BTC, lable: MARKET.BTC },
+            { value: MARKET.USDT, lable: MARKET.USDT },
+        ]
+    },
+    "bithumb": {
+        exchange: { value: EXCHANGE.BITHUMB, lable: "빗썸" },
+        markets: [
+            { value: MARKET.KRW, lable: MARKET.KRW },
+            { value: MARKET.BTC, lable: MARKET.BTC },
+            { value: MARKET.USDT, lable: MARKET.USDT },
+        ]
     },
     "binance": {
-        exchange: EXCHANGE.BINANCE,
-        markets: [MARKET.BUSD, MARKET.TUSD, MARKET.USDT, MARKET.USD_PERP, MARKET.USDT_PERP]
+        exchange: { value: EXCHANGE.BINANCE, lable: "Binance" },
+        markets: [
+            { value: MARKET.BUSD, lable: MARKET.BUSD },
+            { value: MARKET.TUSD, lable: MARKET.TUSD },
+            { value: MARKET.USDT, lable: MARKET.USDT },
+            { value: MARKET.USDT_PERP, lable: MARKET.USDT_PERP },
+            { value: MARKET.USD_PERP, lable: MARKET.USD_PERP },
+        ]
+    },
+    "bybit": {
+        exchange: { value: EXCHANGE.BYBIT, lable: "ByBit" },
+        markets: [
+            { value: MARKET.USDT, lable: MARKET.USDT },
+        ]
     },
 }
