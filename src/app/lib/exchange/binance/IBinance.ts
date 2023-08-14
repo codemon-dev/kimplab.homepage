@@ -175,10 +175,16 @@ export interface IBinanceTickerResponse {
     priceChange: string; //"-8.00000000",  // Absolute price change
     priceChangePercent: string; //"-88.889",      // Relative price change in percent
     weightedAvgPrice: string; //"2.60427807",   // QuoteVolume / Volume
+    prevClosePrice: string // "0.00104300",
+    lastPrice: string; //"1.00000000",
+    lastQty: string // "324.31000000",
+    bidPrice: string // "0.00105400",
+    bidQty: string // "394.10000000",
+    askPrice: string // "0.00105900",
+    askQty: string // "5.09000000",
     openPrice: string; //"9.00000000",
     highPrice: string; //"9.00000000",
     lowPrice: string; //"1.00000000",
-    lastPrice: string; //"1.00000000",
     volume: string; //"187.00000000",
     quoteVolume: string; //"487.00000000", // Sum of (price * volume) for all trades
     openTime: number; //1641859200000,  // Open time for ticker window

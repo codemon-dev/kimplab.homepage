@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 import crypto from 'crypto';
 import { ASK_BID, EXCHANGE, FETCH_METHOD, MARKET } from "@/config/enum";
 import querystring from "querystring";
-import { IAggTradeInfo, IExchangeCoinInfo } from "@/config/interface";
+import { IAggTradeInfo, IExchangeCoinInfo, IOrderBook, PriceQty } from "@/config/interface";
 import { UPBIT_ENDPOINT, UPBIT_PONG_RESPONSE, UpbitSocketPayload, UpbitSocketSimpleResponse } from "./IUpbit";
 import { parseCoinInfoFromCoinPair } from "@/app/helper/cryptoHelper";
 import ReconnectingWebSocket from "reconnecting-websocket";
@@ -98,7 +98,7 @@ export const startTickerWebsocket = (coinPairs: string[], options: any, listener
                         changeRate: res.scr * 100,
                         high: res.hp,
                         low: res.lp,
-                        timestamp: res.ttms
+                        timestamp: res.tms
                     }
                     if (res.st === "SNAPSHOT") {
                         snapshot.push(aggTradeInfo)
@@ -216,6 +216,7 @@ export const startOrderBookWebsocket = (coinPairs: string[], options: any, liste
     ticket = UUID + (ticket? `-${ticket}`: "");    
     orderbookWs?.close();
     orderbookWs = new ReconnectingWebSocket(urlProvider, [], options);
+    let snapshot: IOrderBook[] = []
     orderbookWs.addEventListener('message',  (payload) => {
         try {
             payload.data.text().then((obj: any) => {
@@ -224,7 +225,33 @@ export const startOrderBookWebsocket = (coinPairs: string[], options: any, liste
                     console.log("pong. ", response);
                 } else {
                     const res: UpbitSocketSimpleResponse = {...response as UpbitSocketSimpleResponse};
-                    listener(res)
+                    const {symbol, coinPair, market} = parseCoinInfoFromCoinPair(EXCHANGE.UPBIT, res.cd)
+                    const ask: PriceQty[] = [];
+                    const bid: PriceQty[] = [];
+                    if (res.obu?.length > 0) {                        
+                        res.obu?.forEach((item: any) => {
+                            ask.push({price: item.ap, qty: item.as});
+                            bid.push({price: item.bp, qty: item.bs});
+                        });
+                    }
+                    let orderBook: IOrderBook = {
+                        exchange: EXCHANGE.UPBIT,
+                        market: market as MARKET,
+                        symbol: symbol,
+                        coinPair: coinPair,
+                        bid: bid,
+                        ask: ask,
+                        timestamp: res.tms
+                    }
+                    if (res.st === "SNAPSHOT") {
+                        snapshot.push(orderBook)
+                    } else {
+                        if (snapshot.length > 0) {
+                            listener(snapshot);
+                            snapshot = [];
+                        }
+                        listener([orderBook]);
+                    }
                 }
             })
         }

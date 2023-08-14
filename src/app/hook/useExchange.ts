@@ -66,7 +66,7 @@ function useExchange() {
                     if (listener) { listener(res) }
                 });
                 resolve(ws);
-            }
+            }           
         })
     }
 

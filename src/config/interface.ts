@@ -32,7 +32,11 @@ export interface IAggTradeInfo {
     accTradePrice: number | undefined,      // UTC0기준 누적 거래금액
     accTradePrice_24h: number | undefined,  // 24H 누적 거래금액
     preClosingPrice: number,    // 전일 종가
-    askBid: ASK_BID,    
+    askBid: ASK_BID,
+    bestBidPrice?: number,
+    bestBidQty?: number,
+    bestAskPrice?: number,
+    bestAskQty?: number,
     change?: number,             // 전일 대비 가격 증감
     change_24h?: number,         // 24H 대비 가격 증감
     changeRate?: number,         // 전일 대비 변동폭
@@ -44,13 +48,18 @@ export interface IAggTradeInfo {
     timestamp: number
 }
 
+export interface PriceQty {
+    price: number,
+    qty: number
+}
+
 export interface IOrderBook {
     exchange: EXCHANGE,
     market: MARKET,
     symbol: string,
     coinPair: string,
-    bid: [{price: number, qty: number}],
-    ask: [{price: number, qty: number}],
+    bid: PriceQty[],
+    ask: PriceQty[],
     timestamp: number
 }
 

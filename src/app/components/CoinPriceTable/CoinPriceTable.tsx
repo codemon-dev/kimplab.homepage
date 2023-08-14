@@ -4,15 +4,15 @@ import React, { useCallback, useMemo, useRef, useState, useEffect } from 'react'
 import { AgGridReact } from 'ag-grid-react';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
-import './coinPriceTabeStyle.css';
+import './CoinPriceTableStyle.css';
 import { EXCHANGE, MARKET, WS_TYPE } from '@/config/enum';
 import { IAggTradeInfo, IFilterCondition, IFilterModel } from '@/config/interface';
 import { coinGecko_getExchangeTickers } from '../../lib/crypto3partyAPI/coingecko/coingecko';
 import { ICoinGeckoExhcnageTicker } from '../../lib/crypto3partyAPI/coingecko/ICoingecko';
 import { useGlobalStore } from '@/app/hook/useGlobalStore';
-import { CoinTitle } from './CoinTitle'
+import { CoinTitle } from '../CoinTitle'
 import useExchange from '@/app/hook/useExchange';
-import Favorite from './Favorite';
+import Favorite from '../Favorite';
 import CoinChangePrice from './CoinChangePrice';
 import CoinPrice from './CoinPrice';
 import CoinVolume from './CoinVolume';
@@ -61,7 +61,7 @@ const defaultAdvancedRealTimeChartProps: AdvancedRealTimeChartProps = {
     autosize: true,
     //symbol: "UPBIT:BTCKRW",
     symbol: "NONE",
-    interval: "60",
+    interval: "240",
     // timezone?: Timezone;
     theme: "light",
     // style?: "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9";
@@ -252,6 +252,9 @@ const CoinPriceTable: React.FC = () => {
           let index = binanceDataTableRef.current.get(aggTradeInfo.market)?.findIndex((data: DataType) => {
             return (data.coinPair === aggTradeInfo.coinPair && data.exchange === aggTradeInfo.exchange && data.market === aggTradeInfo.market)
           })
+          if (aggTradeInfo.price === 0 || (!aggTradeInfo.bestBidPrice || !aggTradeInfo.bestAskPrice || aggTradeInfo.bestBidPrice === 0 && aggTradeInfo.bestAskPrice === 0)) {
+            return;
+          }
           // console.log(state.symbolImgMap.get(aggTradeInfo.symbol))
           const data: DataType = createDataType(aggTradeInfo);
           let newDataTable = binanceDataTableRef.current.get(data.market) ?? [];
@@ -273,6 +276,9 @@ const CoinPriceTable: React.FC = () => {
         let index = binanceDataTableRef.current.get(aggTradeInfo.market)?.findIndex((data: DataType) => {
           return (data.coinPair === aggTradeInfo.coinPair && data.exchange === aggTradeInfo.exchange && data.market === aggTradeInfo.market)
         })
+        if (aggTradeInfo.price === 0 || (!aggTradeInfo.bestBidPrice || !aggTradeInfo.bestAskPrice || aggTradeInfo.bestBidPrice === 0 && aggTradeInfo.bestAskPrice === 0)) {
+          return;
+        }
         // console.log(state.symbolImgMap.get(aggTradeInfo.symbol))
         const data: DataType = createDataType(aggTradeInfo);
         let preData = null;

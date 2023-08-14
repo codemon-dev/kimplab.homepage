@@ -1,0 +1,33 @@
+.table-root {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.grid-wrapper {
+  flex: 1 1 0px;
+  width: 100%;
+}
+  
+#myGrid {
+  height: 100%;
+  width: 100%;
+}
+
+
+.ag-theme-alpine {
+  --ag-value-change-value-highlight-background-color: rgba(108, 185, 221, 0.2);
+}
+
+.ag-header-right {
+  .ag-header-cell-label {
+    justify-content: right;
+    /* margin-right: 10px; */
+  }
+}
+
+.ag-header-center {
+  .ag-header-cell-label {
+    justify-content: center;
+  }
+}

@@ -25,6 +25,9 @@ export const NavBar = () => {
             label: 'HOME', key: 'home',
         },
         {
+            label: 'PRIMIUM', key: 'primium',
+        },
+        {
             label: 'BOT', key: 'bot',
         },
         {
