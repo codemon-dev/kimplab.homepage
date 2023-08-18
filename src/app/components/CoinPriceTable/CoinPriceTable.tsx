@@ -19,12 +19,13 @@ import CoinVolume from './CoinVolume';
 import LoadingComp from '../LoadingComp';
 import CoinPriceDetail from './CoinPriceDetail';
 import { AdvancedRealTimeChart, AdvancedRealTimeChartProps } from "react-ts-tradingview-widgets";
-import { Button, Col, Divider, Row, Select, Space } from 'antd';
-import _ from 'lodash'
+import { Avatar, Button, Col, Divider, Row, Select, Space } from 'antd';
+import _, { map } from 'lodash'
 import CoinHighLowPrice from './CoinHighLowPrice';
 import Icon, { SearchOutlined, SettingOutlined } from '@ant-design/icons';
 import CustomTag from '../CustomTag';
 import { ExchangeDefaultInfo } from '@/config/constants';
+import MenuItem from '../MenuItem';
 
 
 interface DataType {
@@ -75,7 +76,7 @@ const defaultAdvancedRealTimeChartProps: AdvancedRealTimeChartProps = {
 
 interface IOption {
   value: string, 
-  lable: string
+  label: any,
 }
 
 const CoinPriceTable: React.FC = () => {
@@ -113,10 +114,18 @@ const CoinPriceTable: React.FC = () => {
   ];
 
   const exchangeList: IOption[] = [
-    ExchangeDefaultInfo.upbit.exchange,
-    ExchangeDefaultInfo.bithumb.exchange,
-    ExchangeDefaultInfo.binance.exchange,
-    ExchangeDefaultInfo.bybit.exchange,
+    {...ExchangeDefaultInfo.upbit.exchange, 
+      label: <MenuItem img={state.exchangeImgMap.get(ExchangeDefaultInfo.upbit.exchange.value.toLowerCase())?.path} title={ExchangeDefaultInfo.upbit.exchange.label} />
+    },
+    {...ExchangeDefaultInfo.bithumb.exchange, 
+      label: <MenuItem img={state.exchangeImgMap.get(ExchangeDefaultInfo.bithumb.exchange.value.toLowerCase())?.path} title={ExchangeDefaultInfo.bithumb.exchange.label} />
+    },
+    {...ExchangeDefaultInfo.binance.exchange, 
+      label: <MenuItem img={state.exchangeImgMap.get(ExchangeDefaultInfo.binance.exchange.value.toLowerCase())?.path} title={ExchangeDefaultInfo.binance.exchange.label} />
+    },
+    {...ExchangeDefaultInfo.bybit.exchange, 
+      label: <MenuItem img={state.exchangeImgMap.get(ExchangeDefaultInfo.bybit.exchange.value.toLowerCase())?.path} title={ExchangeDefaultInfo.bybit.exchange.label} />
+    },
   ]  
 
   let exhcnageInfoMap: Map<EXCHANGE, IOption[]> = new Map<EXCHANGE, IOption[]>();
@@ -235,8 +244,8 @@ const CoinPriceTable: React.FC = () => {
 
   const initialize = async () => {
     filterRef.current = [];
+    setMarketOptions(createMarketList(ExchangeDefaultInfo.upbit.markets));
     selectedRef.current = {exchange: EXCHANGE.UPBIT, market: MARKET.KRW};
-    setMarketOptions(ExchangeDefaultInfo.binance.markets)    
     let promises: any = []
     promises.push(initUpbitWebSocket());
     promises.push(initBinanceWebSocket());
@@ -363,6 +372,15 @@ const CoinPriceTable: React.FC = () => {
     wsRef.current.set(EXCHANGE.UPBIT, ws);
   }
 
+  const createMarketList = (markets: IOption[]) => {
+    if (!markets || markets.length === 0) return [];
+    let newMarket: IOption[] = []
+    markets.forEach((market: IOption) => {
+      newMarket.push({...market, label: <MenuItem img={state.etcImgMap.get(market.label)?.path} title={market.label} /> })
+    })
+    return newMarket;
+  }
+
   const onFilterTagChanged = useCallback((tags: any) => {
     let filters: IFilterCondition[] = []
     tags?.forEach((tag: string) => {
@@ -413,7 +431,7 @@ const CoinPriceTable: React.FC = () => {
   }
   
   const handleExchangeChange = (exchange: EXCHANGE) => {
-    const marketOptions = exhcnageInfoMap.get(exchange) ?? []
+    const marketOptions = createMarketList(exhcnageInfoMap.get(exchange) ?? [])
     selectedRef.current = {
       exchange: exchange,
       market: marketOptions[0].value as MARKET,

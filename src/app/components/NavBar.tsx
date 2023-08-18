@@ -21,18 +21,11 @@ export const NavBar = () => {
         setSelectedItems(items)
     }, [pathname]);
     const items: MenuProps['items'] = [
-        {
-            label: 'HOME', key: 'home',
-        },
-        {
-            label: 'PRIMIUM', key: 'primium',
-        },
-        {
-            label: 'BOT', key: 'bot',
-        },
-        {
-            label: 'PROFILE', key: 'profile'
-        },
+        { label: '홈', key: 'home', },
+        { label: '가격', key: 'price', },
+        { label: '프리미엄', key: 'primium', },
+        { label: '봇', key: 'bot', },
+        { label: '프로파일', key: 'profile' },
     ]
 
     const onClick: MenuProps['onClick'] = (e) => {

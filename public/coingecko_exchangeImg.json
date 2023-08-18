@@ -1,0 +1,18 @@
+[
+    {
+        "id": "upbit",
+        "imgId": "117/small/upbit.png"
+    },
+    {
+        "id": "bithumb",
+        "imgId": "6/small/bithumb_BI.png"
+    },
+    {
+        "id": "binance",
+        "imgId": "52/small/binance.jpg"
+    },
+    {
+        "id": "bybit",
+        "imgId": "/698/small/bybit_spot.png"
+    }
+]
