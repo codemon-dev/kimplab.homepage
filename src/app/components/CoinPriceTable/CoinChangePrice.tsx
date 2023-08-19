@@ -12,9 +12,9 @@ export const CoinChangePrice = (props: any) => {
         let change = props?.data?.change? props?.data?.change: props?.data?.change_24h;
         let changeRate = props?.data?.changeRate? props?.data?.changeRate: props?.data?.changeRate_24h ?? 0
         if (changeRate > 0) {
-            setColor('#f23645')
-        } else if (changeRate < 0) {
             setColor('#089981')
+        } else if (changeRate < 0) {
+            setColor('#f23645')
         } else {
             setColor("black")
         }

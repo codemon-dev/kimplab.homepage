@@ -21,16 +21,16 @@ export const CoinHighLowPrice = (props: any) => {
         setHighRate(`${highRate}%`)
         setLowRate(`${lowRate}%`)
         if (high > preCloseingPrice) {
-            setHighColor("#f23645")
-        } else if (high < preCloseingPrice) {
             setHighColor("#089981")
+        } else if (high < preCloseingPrice) {
+            setHighColor("#f23645")
         } else {
             setHighColor("black")
         }
         if (low > preCloseingPrice) {
-            setLowColor("#f23645")
-        } else if (low < preCloseingPrice) {
             setLowColor("#089981")
+        } else if (low < preCloseingPrice) {
+            setLowColor("#f23645")
         } else {
             setLowColor("black")
         }

@@ -9,7 +9,7 @@ export const PrimiumComp = (props: any) => {
 
     useEffect(() => {
         let primium = props?.data?.primium ?? 0;
-        setColor(primium >= 0 ? '#f23645': '#089981')
+        setColor(primium >= 0 ? '#089981': '#f23645')
         setPrimium(`${primium.toFixed(2)}%`)
     }, [props?.data?.primium])
     if (!props.data) return null;
@@ -27,7 +27,7 @@ export const PrimiumEnterComp = (props: any) => {
 
     useEffect(() => {
         let primium = props?.data?.primiumEnter ?? 0;
-        setColor(primium >= 0 ? '#f23645': '#089981')
+        setColor(primium >= 0 ? '#089981': '#f23645')
         setPrimium(`${primium.toFixed(2)}%`)
     }, [props?.data?.primiumEnter])
     if (!props.data) return null;
@@ -45,7 +45,7 @@ export const PrimiumExitComp = (props: any) => {
 
     useEffect(() => {
         let primium = props?.data?.primiumExit ?? 0;
-        setColor(primium >= 0 ? '#f23645': '#089981')
+        setColor(primium >= 0 ? '#089981': '#f23645')
         setPrimium(`${primium.toFixed(2)}%`)
     }, [props?.data?.primiumExit])
     if (!props.data) return null;

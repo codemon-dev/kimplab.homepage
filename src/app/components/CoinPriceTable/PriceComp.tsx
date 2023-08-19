@@ -10,7 +10,7 @@ export const PriceComp = (props: any) => {
     useEffect(() => {
         let price = props?.data?.price ?? 0;
         let change = props?.data?.change? props?.data?.change: props?.data?.change_24h ?? 0
-        // setColor(change >= 0 ? '#f23645': '#089981')
+        // setColor(change >= 0 ? '#089981': '#f23645')
         setPrice(removeTrailingZeros(price))
     }, [props?.data?.change, props?.data?.change_24h, props?.data?.price])
     if (!props.data) return null;

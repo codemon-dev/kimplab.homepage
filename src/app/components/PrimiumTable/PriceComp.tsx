@@ -10,7 +10,7 @@ export const PriceComp_1 = (props: any) => {
     useEffect(() => {
         let price = props?.data?.price_1 ?? 0;
         let change = props?.data?.change_1? props?.data?.change_1: props?.data?.change_24h_1 ?? 0
-        // setColor(change >= 0 ? '#f23645': '#089981')
+        // setColor(change >= 0 ? '#089981': '#f23645')
         setPrice(removeTrailingZeros(price))
     }, [props?.data?.change_1, props?.data?.change_24h_1, props?.data?.price_1])
     if (!props.data) return null;
@@ -30,7 +30,7 @@ export const PriceComp_2= (props: any) => {
     useEffect(() => {
         let price = props?.data?.price_2 ?? 0;
         let change = props?.data?.change_2? props?.data?.change_2: props?.data?.change_24h_2 ?? 0
-        // setColor(change >= 0 ? '#f23645': '#089981')
+        // setColor(change >= 0 ? '#089981': '#f23645')
         setPrice(removeTrailingZeros(price))
     }, [props?.data?.change_2, props?.data?.change_24h_2, props?.data?.price_2])
     if (!props.data) return null;
