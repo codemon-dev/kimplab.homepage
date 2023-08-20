@@ -503,8 +503,16 @@ const PrimiumTable: React.FC = () => {
             return;
           }
           tradeMapRef.current.set(aggTradeInfo.symbol, aggTradeInfo);
-          let data = createDataType(aggTradeInfo.symbol)
-          if (data) rowData.push(data)
+          const orderBook: IOrderBook = {
+            exchange: aggTradeInfo.exchange,
+            marketInfo: {...aggTradeInfo.marketInfo},
+            symbol: aggTradeInfo.symbol,
+            coinPair: aggTradeInfo.coinPair,
+            bid: [{price: aggTradeInfo.bestBidPrice ?? 0, qty: aggTradeInfo.bestBidQty ?? 0}],
+            ask: [{price: aggTradeInfo.bestAskPrice ?? 0, qty: aggTradeInfo.bestAskQty ?? 0}],
+            timestamp: aggTradeInfo.timestamp,
+          }
+          orderBookMapRef.current.set(orderBook.symbol, orderBook);
         });
   
         if (aggTradeInfos?.length > 1) {
@@ -543,8 +551,16 @@ const PrimiumTable: React.FC = () => {
           return;
         }
         tradeMapRef.current.set(aggTradeInfo.symbol, aggTradeInfo);
-        let data = createDataType(aggTradeInfo.symbol)
-        if (data) rowData.push(data)
+        const orderBook: IOrderBook = {
+          exchange: aggTradeInfo.exchange,
+          marketInfo: {...aggTradeInfo.marketInfo},
+          symbol: aggTradeInfo.symbol,
+          coinPair: aggTradeInfo.coinPair,
+          bid: [{price: aggTradeInfo.bestBidPrice ?? 0, qty: aggTradeInfo.bestBidQty ?? 0}],
+          ask: [{price: aggTradeInfo.bestAskPrice ?? 0, qty: aggTradeInfo.bestAskQty ?? 0}],
+          timestamp: aggTradeInfo.timestamp,
+        }
+        orderBookMapRef.current.set(orderBook.symbol, orderBook);
       });
 
       if (aggTradeInfos?.length > 1) {
