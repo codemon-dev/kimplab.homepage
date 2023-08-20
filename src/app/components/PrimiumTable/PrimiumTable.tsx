@@ -527,43 +527,45 @@ const PrimiumTable: React.FC = () => {
       })
       wsRef.current.set(WS_TYPE.BINANCE_USD_M_FUTURE_TICKER, usdMFutureTickerWs);
   
-      const coinMFutureTickerWs = await startWebsocket(WS_TYPE.BINANCE_COIN_M_FUTURE_TICKER, codes, (orderBooks: IOrderBook[]) => {
-        if (orderBooks && orderBooks.length > 0) {
-          if (selectedRef.current.exchange !== orderBooks[0].exchange || selectedRef.current.marketInfo.marketType !== orderBooks[0].marketInfo.marketType) {
-            const ws = wsRef.current.get(WS_TYPE.BINANCE_COIN_M_FUTURE_TICKER);
-            ws?.close();
-            console.log("close BINANCE_COIN_M_FUTURE_TICKER")
-            wsRef.current.delete(WS_TYPE.BINANCE_COIN_M_FUTURE_TICKER)
-            return;
-          }
-        }
-        orderBooks.forEach((orderBook: IOrderBook) => {
-          if (selectedRef.current.exchange !== orderBook.exchange || selectedRef.current.marketInfo.market !== orderBook.marketInfo.market) {
-            return;
-          }
-          orderBookMapRef.current.set(orderBook.symbol, orderBook);
-        });
-  
-        if (orderBooks?.length > 1) {
-          console.log("BINANCE_COIN_M_FUTURE_TICKER: ", tradeMapRef.current.size)
-          resolve(true)
+      const coinMFutureTickerWs = await startWebsocket(WS_TYPE.BINANCE_COIN_M_FUTURE_TICKER, codes, (aggTradeInfos: IAggTradeInfo[]) => {
+      if (aggTradeInfos && aggTradeInfos.length > 0) {
+        if (selectedRef.current.exchange !== aggTradeInfos[0].exchange || selectedRef.current.marketInfo.marketType !== aggTradeInfos[0].marketInfo.marketType) {
+          const ws = wsRef.current.get(WS_TYPE.BINANCE_COIN_M_FUTURE_TICKER);
+          ws?.close();
+          console.log("close BINANCE_COIN_M_FUTURE_TICKER")
+          wsRef.current.delete(WS_TYPE.BINANCE_COIN_M_FUTURE_TICKER)
           return;
         }
-  
-        if (orderBooks?.length === 1) {
-          if (isLoadingRef.current === true || rowData.length === 0 || rowData[0] === null) return;
-          const rowNode = gridRef?.current?.api?.getRowNode(rowData[0].id);
-          const preData: DataType = rowNode?.data;
-          rowNode?.setData(rowData[0]);          
-          if (preData) {
-            if (preData.primium != rowData[0].primium || preData.primiumEnter != rowData[0].primiumEnter || preData.primiumExit != rowData[0].primiumExit 
-              || preData.tether != rowData[0].tether || preData.tetherEnter != rowData[0].tetherEnter || preData.tetherExit != rowData[0].tetherExit) {
-              gridRef?.current?.api?.flashCells({rowNodes: [rowNode], flashDelay: 400, fadeDelay: 100,})
-            }
-          } 
+      }
+      let rowData: DataType[] = []
+      aggTradeInfos.forEach((aggTradeInfo: IAggTradeInfo) => {
+        if (selectedRef.current.exchange !== aggTradeInfo.exchange || selectedRef.current.marketInfo.market !== aggTradeInfo.marketInfo.market) {
+          return;
         }
-      })
-      wsRef.current.set(WS_TYPE.BINANCE_COIN_M_FUTURE_TICKER, coinMFutureTickerWs);
+        tradeMapRef.current.set(aggTradeInfo.symbol, aggTradeInfo);
+        let data = createDataType(aggTradeInfo.symbol)
+        if (data) rowData.push(data)
+      });
+
+      if (aggTradeInfos?.length > 1) {
+        console.log("BINANCE_COIN_M_FUTURE_TICKER: ", tradeMapRef.current.size)
+        resolve(true)
+        return;
+      }
+      if (aggTradeInfos?.length === 1) {
+        if (isLoadingRef.current === true || rowData.length === 0 || rowData[0] === null) return;
+        const rowNode = gridRef?.current?.api?.getRowNode(rowData[0].id);
+        const preData: DataType = rowNode?.data;
+        rowNode?.setData(rowData[0]);          
+        if (preData) {
+          if (preData.primium != rowData[0].primium || preData.primiumEnter != rowData[0].primiumEnter || preData.primiumExit != rowData[0].primiumExit 
+            || preData.tether != rowData[0].tether || preData.tetherEnter != rowData[0].tetherEnter || preData.tetherExit != rowData[0].tetherExit) {
+            gridRef?.current?.api?.flashCells({rowNodes: [rowNode], flashDelay: 400, fadeDelay: 100,})
+          }
+        } 
+      }
+    })
+    wsRef.current.set(WS_TYPE.BINANCE_COIN_M_FUTURE_TICKER, coinMFutureTickerWs);
     })
   }, [])
 
