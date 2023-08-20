@@ -3,11 +3,11 @@
 import jwt from "jsonwebtoken";
 import { v4 as uuidv4 } from "uuid";
 import crypto from 'crypto';
-import { ASK_BID, EXCHANGE, FETCH_METHOD, MARKET } from "@/config/enum";
+import { ASK_BID, EXCHANGE, FETCH_METHOD, MARKET, MARKET_CURRENCY, MARKET_TYPE } from "@/config/enum";
 import querystring from "querystring";
 import { IAggTradeInfo, IExchangeCoinInfo, IOrderBook, PriceQty } from "@/config/interface";
 import { UPBIT_ENDPOINT, UPBIT_PONG_RESPONSE, UpbitSocketPayload, UpbitSocketSimpleResponse } from "./IUpbit";
-import { parseCoinInfoFromCoinPair } from "@/app/helper/cryptoHelper";
+import { getMarketInfo, parseCoinInfoFromCoinPair } from "@/app/helper/cryptoHelper";
 import ReconnectingWebSocket from "reconnecting-websocket";
 
 const UPBI_WS_ADDR = "wss://api.upbit.com/websocket/v1"
@@ -15,13 +15,13 @@ const UPBI_WS_ADDR = "wss://api.upbit.com/websocket/v1"
 export const getInitialInfoUpbit = async () => {
     const response: any = await fetchUpbitApi(FETCH_METHOD.GET, UPBIT_ENDPOINT.API_MARKET_ALL);
     // console.log("response: ", response)
-    let upbitExchangeInfos: IExchangeCoinInfo[] = []
+    let exchangeInfos: IExchangeCoinInfo[] = []
     if (!response) {
         return null;
     }
     if (response) {
             response.forEach((obj: any) => {
-                const {symbol, coinPair, market} = parseCoinInfoFromCoinPair(EXCHANGE.UPBIT, obj.market)
+                const {symbol, coinPair, market} = parseCoinInfoFromCoinPair(EXCHANGE.UPBIT, MARKET_TYPE.SPOT, obj.market)
                 let info: IExchangeCoinInfo = {
                     exchange: EXCHANGE.UPBIT,
                     symbol: symbol,
@@ -42,10 +42,10 @@ export const getInitialInfoUpbit = async () => {
                     // withdrawFee: 0,
                 }
                 // console.log(`symbol: ${info.symbol}, coinPair: ${info.coinPair}, market: ${info.market}`)
-                upbitExchangeInfos.push(info);
+                exchangeInfos.push(info);
             });
-        // console.log(upbitExchangeInfos)
-        return upbitExchangeInfos;
+        // console.log(exchangeInfos)
+        return exchangeInfos;
     }
 }
 
@@ -81,10 +81,10 @@ export const startTickerWebsocket = (coinPairs: string[], options: any, listener
                     console.log("pong. ", response);
                 } else {
                     const res: UpbitSocketSimpleResponse = {...response as UpbitSocketSimpleResponse};
-                    const {symbol, coinPair, market} = parseCoinInfoFromCoinPair(EXCHANGE.UPBIT, res.cd)
+                    const {symbol, coinPair, market, marketCurrency} = parseCoinInfoFromCoinPair(EXCHANGE.UPBIT, MARKET_TYPE.SPOT, res.cd)
                     let aggTradeInfo: IAggTradeInfo = {
                         exchange: EXCHANGE.UPBIT,
-                        market: market as MARKET,
+                        marketInfo: {exchange: EXCHANGE.UPBIT, market: market as MARKET, marketType: MARKET_TYPE.SPOT, marketCurrency: marketCurrency as MARKET_CURRENCY},
                         symbol: symbol,
                         coinPair: coinPair,
                         price: res.tp,
@@ -225,7 +225,7 @@ export const startOrderBookWebsocket = (coinPairs: string[], options: any, liste
                     console.log("pong. ", response);
                 } else {
                     const res: UpbitSocketSimpleResponse = {...response as UpbitSocketSimpleResponse};
-                    const {symbol, coinPair, market} = parseCoinInfoFromCoinPair(EXCHANGE.UPBIT, res.cd)
+                    const {symbol, coinPair, market} = parseCoinInfoFromCoinPair(EXCHANGE.UPBIT, MARKET_TYPE.SPOT, res.cd)
                     const ask: PriceQty[] = [];
                     const bid: PriceQty[] = [];
                     if (res.obu?.length > 0) {                        
@@ -236,7 +236,7 @@ export const startOrderBookWebsocket = (coinPairs: string[], options: any, liste
                     }
                     let orderBook: IOrderBook = {
                         exchange: EXCHANGE.UPBIT,
-                        market: market as MARKET,
+                        marketInfo: getMarketInfo(EXCHANGE.UPBIT, market as MARKET),
                         symbol: symbol,
                         coinPair: coinPair,
                         bid: bid,

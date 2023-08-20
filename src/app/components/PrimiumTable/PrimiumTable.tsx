@@ -3,34 +3,34 @@
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
 import './PrimiumTableStyle.css'
-import useExchange from '@/app/hook/useExchange';
-
-import { useGlobalStore } from '@/app/hook/useGlobalStore';
-import { EXCHANGE, MARKET, WS_TYPE } from '@/config/enum';
+import _ from "lodash"
 import React, { useCallback, useMemo, useRef, useState, useEffect, MutableRefObject } from 'react';
-import { AdvancedRealTimeChart, AdvancedRealTimeChartProps, Market } from 'react-ts-tradingview-widgets';
-import CoinTitle from '../CoinTitle';
-import { PriceComp_1, PriceComp_2 } from './PriceComp';
-import { PrimiumComp, PrimiumEnterComp, PrimiumExitComp } from './PrimiumComp';
-import Favorite from '../Favorite';
+import useExchange from '@/app/hook/useExchange';
+import { useGlobalStore } from '@/app/hook/useGlobalStore';
+import { EXCHANGE, MARKET, MARKET_CURRENCY, MARKET_TYPE, WS_TYPE } from '@/config/enum';
+import { AdvancedRealTimeChart, AdvancedRealTimeChartProps } from 'react-ts-tradingview-widgets';
 import { ExchangeDefaultInfo } from '@/config/constants';
-import { IAggTradeInfo, IFilterCondition, IFilterModel, IOrderBook } from '@/config/interface';
+import { IAggTradeInfo, IFilterCondition, IFilterModel, IMarketInfo, IMenuOption, IOrderBook, ISelectedExchangeMarket } from '@/config/interface';
 import { calculatePrimium, calculateTether } from '@/app/lib/tradeHelper';
 import { Button, Col, Row, TreeSelect, Select } from 'antd';
-import Icon, { SearchOutlined, SettingOutlined } from '@ant-design/icons';
+import { SearchOutlined, SettingOutlined } from '@ant-design/icons';
 import { AgGridReact } from 'ag-grid-react';
+import { PriceComp_1, PriceComp_2 } from './PriceComp';
+import { PrimiumComp, PrimiumEnterComp, PrimiumExitComp } from './PrimiumComp';
 import LoadingComp from '../LoadingComp';
 import CustomTag from '../CustomTag';
 import MenuItem from '../MenuItem';
-import _ from "lodash"
+import CoinTitle from '../CoinTitle';
+import Favorite from '../Favorite';
 import TetherComp from './TetherComp';
+import { getMarketInfo } from '@/app/helper/cryptoHelper';
 
 interface DataType {
   id: string;
   exchange_1: EXCHANGE,
   exchange_2: EXCHANGE,
-  market_1: MARKET,
-  market_2: MARKET,
+  marketInfo_1: IMarketInfo,
+  marketInfo_2: IMarketInfo,
   symbol: string,
   coinPair_1: string | null,
   coinPair_2: string | null,
@@ -51,11 +51,6 @@ interface DataType {
   symbolImg: string | undefined,
 }
 
-interface SelectedExchangeMarket {
-  exchange: EXCHANGE,
-  market: IOption,
-}
-
 const defaultAdvancedRealTimeChartProps: AdvancedRealTimeChartProps = {
     autosize: true,
     //symbol: "UPBIT:BTCKRW",
@@ -72,15 +67,6 @@ const defaultAdvancedRealTimeChartProps: AdvancedRealTimeChartProps = {
     // copyrightStyles: CopyrightStyles;
 } 
 
-interface IOption {
-  value: string,
-  title?: any, 
-  label?: any,
-  key?: any,
-  selectable?: boolean,
-  disabled?: boolean,
-  children?: IOption[]
-}
 
 const PrimiumTable: React.FC = () => {
   const {state} = useGlobalStore()
@@ -90,7 +76,7 @@ const PrimiumTable: React.FC = () => {
   const [advancedRealTimeChartProps, setAdvancedRealTimeChartProps] = useState(advancedRealTimeChartPropsRef.current)
   
   const gridRef = useRef<any>();
-  const wsRef = useRef<Map<EXCHANGE, any>>(new Map<EXCHANGE, any>())
+  const wsRef = useRef<Map<WS_TYPE, any>>(new Map<WS_TYPE, any>())
 
   const [rowData, setRowData] = useState<DataType[]>([]);
   const currenyPriceRef = useRef<number>(1300)
@@ -98,11 +84,11 @@ const PrimiumTable: React.FC = () => {
   const orderBookMapRef_2 = useRef<Map<string, IOrderBook>>(new Map<string, IOrderBook>())
   const tradeMapRef_1 = useRef<Map<string, IAggTradeInfo>>(new Map<MARKET, IAggTradeInfo>())
   const tradeMapRef_2 = useRef<Map<string, IAggTradeInfo>>(new Map<MARKET, IAggTradeInfo>())
-  const selectedRef_1 = useRef<SelectedExchangeMarket>({exchange: EXCHANGE.NONE, market: {value: (MARKET.NONE as string)}})
-  const selectedRef_2 = useRef<SelectedExchangeMarket>({exchange: EXCHANGE.NONE, market: {value: (MARKET.NONE as string)}})
-  const marketListRef = useRef<Map<EXCHANGE, IOption>>(new Map<EXCHANGE, IOption>);
-  const [marketOptions_1, setMarketOptions_1] = useState<IOption[]>([])
-  const [marketOptions_2, setMarketOptions_2] = useState<IOption[]>([])
+  const selectedRef_1 = useRef<ISelectedExchangeMarket>({exchange: EXCHANGE.NONE, marketInfo: {exchange: EXCHANGE.NONE, market: MARKET.NONE, marketType: MARKET_TYPE.NONE, marketCurrency: MARKET_CURRENCY.NONE}})
+  const selectedRef_2 = useRef<ISelectedExchangeMarket>({exchange: EXCHANGE.NONE, marketInfo: {exchange: EXCHANGE.NONE, market: MARKET.NONE, marketType: MARKET_TYPE.NONE, marketCurrency: MARKET_CURRENCY.NONE}})
+  const marketListRef = useRef<Map<EXCHANGE, IMenuOption>>(new Map<EXCHANGE, IMenuOption>);
+  const [marketOptions_1, setMarketOptions_1] = useState<IMenuOption[]>([])
+  const [marketOptions_2, setMarketOptions_2] = useState<IMenuOption[]>([])
 
   const filterRef = useRef<string[]>([])  
   const filterOptionRef = useRef<{value: string, lable: string}[]>([])  
@@ -123,11 +109,11 @@ const PrimiumTable: React.FC = () => {
   ];  
 
   const createMarketListInfoMap = () => {
-    let options: IOption;
+    let options: IMenuOption;
     options = { value: EXCHANGE.UPBIT, title: ExchangeDefaultInfo.upbit.exchange.label, selectable: false, children: [] }
-    ExchangeDefaultInfo.upbit.markets.forEach((market: {value: MARKET, label: MARKET}) => {
-      if ((market.value as string).includes(MARKET.KRW) || (market.value as string).includes(MARKET.USD)) {
-        options.children?.push({value: `${EXCHANGE.UPBIT}__${market.value}`, 
+    ExchangeDefaultInfo.upbit.markets.forEach((market: {label: string, marketInfo: IMarketInfo}) => {
+      if (market.marketInfo.marketCurrency === MARKET_CURRENCY.KRW || market.marketInfo.marketCurrency === MARKET_CURRENCY.USDT) {
+        options.children?.push({value: `${EXCHANGE.UPBIT}__${market.marketInfo.market}`, 
         title: <MenuItem title={market.label} img={state.exchangeImgMap.get(EXCHANGE.UPBIT.toLowerCase())?.path}/>,
         label: <MenuItem title={market.label} img={state.exchangeImgMap.get(EXCHANGE.UPBIT.toLowerCase())?.path}/>
       })}
@@ -135,9 +121,9 @@ const PrimiumTable: React.FC = () => {
     marketListRef.current.set(EXCHANGE.UPBIT, options);
 
     options = { value: EXCHANGE.BITHUMB, title: ExchangeDefaultInfo.bithumb.exchange.label, selectable: false, children: [] }
-    ExchangeDefaultInfo.bithumb.markets.forEach((market: {value: MARKET, label: MARKET}) => {
-      if ((market.value as string).includes(MARKET.KRW) || (market.value as string).includes(MARKET.USD)) {
-        options.children?.push({value: `${EXCHANGE.BITHUMB}__${market.value}`, 
+    ExchangeDefaultInfo.bithumb.markets.forEach((market: {label: string, marketInfo: IMarketInfo}) => {
+      if (market.marketInfo.marketCurrency === MARKET_CURRENCY.KRW || market.marketInfo.marketCurrency === MARKET_CURRENCY.USDT) {
+        options.children?.push({value: `${EXCHANGE.BITHUMB}__${market.marketInfo.market}`, 
         title: <MenuItem title={market.label} img={state.exchangeImgMap.get(EXCHANGE.BITHUMB.toLowerCase())?.path}/>,
         label: <MenuItem title={market.label} img={state.exchangeImgMap.get(EXCHANGE.BITHUMB.toLowerCase())?.path}/>
       })}
@@ -145,9 +131,13 @@ const PrimiumTable: React.FC = () => {
     marketListRef.current.set(EXCHANGE.BITHUMB, options);
 
     options = { value: EXCHANGE.BINANCE, title: ExchangeDefaultInfo.binance.exchange.label, selectable: false, children: [] }
-    ExchangeDefaultInfo.binance.markets.forEach((market: {value: MARKET, label: MARKET}) => {
-      if ((market.value as string).includes(MARKET.KRW) || (market.value as string).includes(MARKET.USD)) {
-        options.children?.push({value: `${EXCHANGE.BINANCE}__${market.value}`, 
+    ExchangeDefaultInfo.binance.markets.forEach((market: {label: string, marketInfo: IMarketInfo}) => {
+      if (market.marketInfo.marketCurrency === MARKET_CURRENCY.USDT 
+        || market.marketInfo.marketCurrency === MARKET_CURRENCY.BUSD 
+        || market.marketInfo.marketCurrency === MARKET_CURRENCY.USD
+        || market.marketInfo.marketCurrency === MARKET_CURRENCY.USDC
+        || market.marketInfo.marketCurrency === MARKET_CURRENCY.TUSD) {
+          options.children?.push({value: `${EXCHANGE.BINANCE}__${market.marketInfo.market}`, 
         title: <MenuItem title={market.label} img={state.exchangeImgMap.get(EXCHANGE.BINANCE.toLowerCase())?.path}/>,
         label: <MenuItem title={market.label} img={state.exchangeImgMap.get(EXCHANGE.BINANCE.toLowerCase())?.path}/>
       })}
@@ -155,17 +145,17 @@ const PrimiumTable: React.FC = () => {
     marketListRef.current.set(EXCHANGE.BINANCE, options);
     
     options = { value: EXCHANGE.BYBIT, title: ExchangeDefaultInfo.bybit.exchange.label, selectable: false, children: [] }
-    ExchangeDefaultInfo.bybit.markets.forEach((market: {value: MARKET, label: MARKET}) => {
-      if ((market.value as string).includes(MARKET.KRW) || (market.value as string).includes(MARKET.USD)) {
-        options.children?.push({value: `${EXCHANGE.BYBIT}__${market.value}`, 
+    ExchangeDefaultInfo.bybit.markets.forEach((market: {label: string, marketInfo: IMarketInfo}) => {
+      if (market.marketInfo.marketCurrency === MARKET_CURRENCY.USDT) {
+        options.children?.push({value: `${EXCHANGE.BYBIT}__${market.marketInfo.market}`, 
         title: <MenuItem title={market.label} img={state.exchangeImgMap.get(EXCHANGE.BYBIT.toLowerCase())?.path}/>,
         label: <MenuItem title={market.label} img={state.exchangeImgMap.get(EXCHANGE.BYBIT.toLowerCase())?.path}/>
       })}
     })
     marketListRef.current.set(EXCHANGE.BYBIT, options);
     
-    let newMarketOption: IOption[] = [];
-    marketListRef.current.forEach((option: IOption, key: EXCHANGE, map: Map<EXCHANGE, IOption>) => {      
+    let newMarketOption: IMenuOption[] = [];
+    marketListRef.current.forEach((option: IMenuOption, key: EXCHANGE, map: Map<EXCHANGE, IMenuOption>) => {      
       newMarketOption.push(option)
     });
     setMarketOptions_1(newMarketOption)
@@ -179,15 +169,28 @@ const PrimiumTable: React.FC = () => {
     isMountRef.current = true;
     isLoadingRef.current = true;
     filterRef.current = [];
-    selectedRef_1.current = {exchange: EXCHANGE.UPBIT, market: {value: MARKET.KRW, label: <MenuItem title={MARKET.KRW} img={state.exchangeImgMap.get(EXCHANGE.UPBIT.toLowerCase())?.path}/>}};
-    selectedRef_2.current = {exchange: EXCHANGE.BINANCE, market: {value: MARKET.USDT, label: <MenuItem title={MARKET.USDT} img={state.exchangeImgMap.get(EXCHANGE.BINANCE.toLowerCase())?.path}/>}};
+
     createMarketListInfoMap();
+
+    let options = marketListRef.current.get(EXCHANGE.UPBIT)
+    let menuItem_1 = options?.children? options?.children[0]: {value: MARKET.SPOT_KRW, label: <MenuItem title={MARKET.SPOT_KRW} img={state.exchangeImgMap.get(EXCHANGE.UPBIT.toLowerCase())?.path}/>};
+    options = marketListRef.current.get(EXCHANGE.BINANCE)
+    let menuItem_2 = options?.children? options?.children[0]: {value: MARKET.SPOT_USDT, label: <MenuItem title={MARKET.SPOT_USDT} img={state.exchangeImgMap.get(EXCHANGE.BINANCE.toLowerCase())?.path}/>};
+    selectedRef_1.current = {
+      exchange: EXCHANGE.UPBIT,
+      marketInfo: {exchange: EXCHANGE.UPBIT, market: MARKET.SPOT_KRW, marketType: MARKET_TYPE.SPOT, marketCurrency: MARKET_CURRENCY.KRW},
+      menuItem: menuItem_1 }
+    selectedRef_2.current = {
+      exchange: EXCHANGE.BINANCE, 
+      marketInfo: {exchange: EXCHANGE.BINANCE, market: MARKET.SPOT_USDT, marketType: MARKET_TYPE.SPOT, marketCurrency: MARKET_CURRENCY.USDT},
+      menuItem: menuItem_2 }
+    
     initialize();
     return () => {
       try {
         // eslint-disable-next-line react-hooks/exhaustive-deps 
-        wsRef.current.forEach((ws: any, key: EXCHANGE) => {
-          console.log("close websocket. exchange: ", key);
+        wsRef.current.forEach((ws: any, key: WS_TYPE) => {
+          console.log("close websocket. key: ", key);
           ws?.close()
         })
       } catch {}
@@ -198,16 +201,16 @@ const PrimiumTable: React.FC = () => {
   const initialize = useCallback(async () => {
     isLoadingRef.current = true;    
 
-    let newMarketOption_1: IOption[] = [];
-    let newMarketOption_2: IOption[] = [];
-    marketListRef.current.forEach((option: IOption, key: EXCHANGE, map: Map<EXCHANGE, IOption>) => { 
+    let newMarketOption_1: IMenuOption[] = [];
+    let newMarketOption_2: IMenuOption[] = [];
+    marketListRef.current.forEach((option: IMenuOption, key: EXCHANGE, map: Map<EXCHANGE, IMenuOption>) => { 
       // console.log("option ", option) 
       // console.log("selectedRef_2.current.exchange: ", selectedRef_2.current.exchange) 
       // console.log("selectedRef_2.current.market.value: ", selectedRef_2.current.market.value) 
       if (option.value.toLocaleLowerCase() === selectedRef_2.current.exchange.toLocaleLowerCase()) {
-        let newChildren: IOption[] = []
-        option.children?.forEach((child: IOption) => {
-          if (child.value.split("__")[1]?.toLocaleLowerCase() === selectedRef_2.current.market.value.toLocaleLowerCase()) {
+        let newChildren: IMenuOption[] = []
+        option.children?.forEach((child: IMenuOption) => {
+          if (child.value.split("__")[1]?.toLocaleLowerCase() === selectedRef_2.current.marketInfo.market.toLocaleLowerCase()) {
             child.selectable = false;
             child.disabled = true;
             // child.title = <MenuItem disabled={true} title={selectedRef_2.current.market.label} img={state.exchangeImgMap.get(selectedRef_2.current.exchange.toLowerCase())?.path}/>
@@ -222,11 +225,11 @@ const PrimiumTable: React.FC = () => {
       }
       newMarketOption_1.push(option)
     });
-    marketListRef.current.forEach((option: IOption, key: EXCHANGE, map: Map<EXCHANGE, IOption>) => {      
+    marketListRef.current.forEach((option: IMenuOption, key: EXCHANGE, map: Map<EXCHANGE, IMenuOption>) => {      
       if (option.value.toLocaleLowerCase() === selectedRef_1.current.exchange.toLocaleLowerCase()) {
-        let newChildren: IOption[] = []
-        option.children?.forEach((child: IOption) => {
-          if (child.value.split("__")[1]?.toLocaleLowerCase() === selectedRef_1.current.market.value.toLocaleLowerCase()) {
+        let newChildren: IMenuOption[] = []
+        option.children?.forEach((child: IMenuOption) => {
+          if (child.value.split("__")[1]?.toLocaleLowerCase() === selectedRef_1.current.marketInfo.market.toLocaleLowerCase()) {
             child.selectable = false;
             child.disabled = true;
           } else {
@@ -242,8 +245,8 @@ const PrimiumTable: React.FC = () => {
     setMarketOptions_1(newMarketOption_1)
     setMarketOptions_2(newMarketOption_2)
 
-    wsRef.current.forEach((ws: any, key: EXCHANGE) => {
-      console.log("close websocket. exchange: ", key);
+    wsRef.current.forEach((ws: any, key: WS_TYPE) => {
+      console.log("close websocket. key: ", key);
       ws?.close()
     })
     setRowData([]);
@@ -268,11 +271,11 @@ const PrimiumTable: React.FC = () => {
     console.log("initWebsocket done!!!!")
     gridRef?.current?.api?.showLoadingOverlay();
     gridRef?.current?.api?.sizeColumnsToFit();
-    changeTradingView(selectedRef_1.current.exchange, selectedRef_2.current.exchange, "BTC", selectedRef_1.current.market.value, selectedRef_2.current.market.value);
+    changeTradingView(selectedRef_1.current.exchange, selectedRef_2.current.exchange, "BTC", selectedRef_1.current.marketInfo.marketCurrency, selectedRef_2.current.marketInfo.marketCurrency);
     isLoadingRef.current = false;
   }, [])
 
-  const initWebsocket = useCallback(async (exchange: EXCHANGE, orderBookMapRef: MutableRefObject<Map<string, IOrderBook>>, tradeMapRef: MutableRefObject<Map<string, IAggTradeInfo>>, selectedRef: MutableRefObject<SelectedExchangeMarket>) => {
+  const initWebsocket = useCallback(async (exchange: EXCHANGE, orderBookMapRef: MutableRefObject<Map<string, IOrderBook>>, tradeMapRef: MutableRefObject<Map<string, IAggTradeInfo>>, selectedRef: MutableRefObject<ISelectedExchangeMarket>) => {
     if (exchange === EXCHANGE.UPBIT) {
       await initUpbitWebSocket(orderBookMapRef, tradeMapRef, selectedRef);
     } else if (exchange === EXCHANGE.BITHUMB) {
@@ -300,8 +303,8 @@ const PrimiumTable: React.FC = () => {
     const orderBook_2 = orderBookMapRef_2.current.get(symbol)
     const trade_1 = tradeMapRef_1.current.get(symbol)
     const trade_2 = tradeMapRef_2.current.get(symbol)
-    const currency_1 = trade_1?.market.includes(MARKET.KRW)? MARKET.KRW : MARKET.USD;
-    const currency_2 = trade_2?.market.includes(MARKET.KRW)? MARKET.KRW : MARKET.USD;
+    const currency_1 = trade_1?.marketInfo.marketCurrency;
+    const currency_2 = trade_2?.marketInfo.marketCurrency;
     if (!orderBook_1 && !orderBook_2 && !trade_1 && !trade_2) {
       return null;
     }
@@ -319,7 +322,7 @@ const PrimiumTable: React.FC = () => {
     let askPrice_2 = orderBook_2?.ask[0]?.price ?? 0;
     let bidPrice_2 = orderBook_2?.bid[0]?.price ?? 0;
 
-    const currencyPrice = ((currency_1 === MARKET.KRW && currency_2 === MARKET.KRW) || (currency_1 === MARKET.USD && currency_2 === MARKET.USD))? 1: currenyPriceRef.current;
+    const currencyPrice = ((currency_1 === MARKET_CURRENCY.KRW && currency_2 === MARKET_CURRENCY.KRW) || (currency_1 === MARKET_CURRENCY.USD && currency_2 === MARKET_CURRENCY.USD))? 1: currenyPriceRef.current;
 
     let primium = calculatePrimium(price_1, price_2, currencyPrice)
     let primiumEnter = calculatePrimium(askPrice_1, bidPrice_2, currencyPrice)
@@ -333,8 +336,8 @@ const PrimiumTable: React.FC = () => {
       symbol: symbol,
       exchange_1: selectedRef_1.current.exchange,
       exchange_2: selectedRef_2.current.exchange,
-      market_1: selectedRef_1.current.market.value as MARKET,
-      market_2: selectedRef_2.current.market.value as MARKET,      
+      marketInfo_1: {...selectedRef_1.current.marketInfo},
+      marketInfo_2: {...selectedRef_2.current.marketInfo},
       coinPair_1: coinPair_1,
       coinPair_2: coinPair_2,
       price_1: price_1,
@@ -356,7 +359,8 @@ const PrimiumTable: React.FC = () => {
     return data;
   }, [])
 
-  const initUpbitWebSocket = useCallback((orderBookMapRef: MutableRefObject<Map<string, IOrderBook>>, tradeMapRef: MutableRefObject<Map<string, IAggTradeInfo>>, selectedRef: MutableRefObject<SelectedExchangeMarket>) => {
+  const initUpbitWebSocket = useCallback((orderBookMapRef: MutableRefObject<Map<string, IOrderBook>>, tradeMapRef: MutableRefObject<Map<string, IAggTradeInfo>>, selectedRef: MutableRefObject<ISelectedExchangeMarket>) => {
+    console.log("initUpbitWebSocket");
     let orderBookReady = false;
     let tradeReady = false;
     return new Promise(async (resolve) => {
@@ -364,7 +368,7 @@ const PrimiumTable: React.FC = () => {
       const tickerWs = await startWebsocket(WS_TYPE.UPBIT_TICKER, codes, (aggTradeInfos: IAggTradeInfo[]) => {
         let rowData: DataType[] = []
         aggTradeInfos.forEach((aggTradeInfo: IAggTradeInfo) => {
-          if (selectedRef.current.exchange !== aggTradeInfo.exchange || selectedRef.current.market.value !== aggTradeInfo.market) {
+          if (selectedRef.current.exchange !== aggTradeInfo.exchange || selectedRef.current.marketInfo.market !== aggTradeInfo.marketInfo.market) {
             return;
           }
           tradeMapRef.current.set(aggTradeInfo.symbol, aggTradeInfo);
@@ -393,11 +397,11 @@ const PrimiumTable: React.FC = () => {
           } 
         }
       })
-      wsRef.current.set(EXCHANGE.UPBIT, tickerWs);
+      wsRef.current.set(WS_TYPE.UPBIT_TICKER, tickerWs);
   
       const orderBookWs = await startWebsocket(WS_TYPE.UPBIT_ORDER_BOOK, codes, (orderBooks: IOrderBook[]) => {
         orderBooks.forEach((orderBook: IOrderBook) => {
-          if (selectedRef.current.exchange !== orderBook.exchange || selectedRef.current.market.value !== orderBook.market) {
+          if (selectedRef.current.exchange !== orderBook.exchange || selectedRef.current.marketInfo.market !== orderBook.marketInfo.market) {
             return;
           }
           orderBookMapRef.current.set(orderBook.symbol, orderBook);
@@ -425,17 +429,26 @@ const PrimiumTable: React.FC = () => {
           } 
         }
       })
-      wsRef.current.set(EXCHANGE.UPBIT, orderBookWs);
+      wsRef.current.set(WS_TYPE.UPBIT_ORDER_BOOK, orderBookWs);
     })
   }, [])
 
-  const initBinanceWebSocket = useCallback((orderBookMapRef: MutableRefObject<Map<string, IOrderBook>>, tradeMapRef: MutableRefObject<Map<string, IAggTradeInfo>>, selectedRef: MutableRefObject<SelectedExchangeMarket>) => {    
+  const initBinanceWebSocket = useCallback((orderBookMapRef: MutableRefObject<Map<string, IOrderBook>>, tradeMapRef: MutableRefObject<Map<string, IAggTradeInfo>>, selectedRef: MutableRefObject<ISelectedExchangeMarket>) => {    
+    console.log("initBinanceWebSocket");
     return new Promise(async (resolve) => {
       let codes: string[] = Array.from(state.exchangeConinInfos.get(EXCHANGE.BINANCE)?.keys() ?? []);
-      const tickerWs = await startWebsocket(WS_TYPE.BINANCE_TICKER, codes, (aggTradeInfos: IAggTradeInfo[]) => {
+      const spotTickerWs = await startWebsocket(WS_TYPE.BINANCE_SPOT_TICKER, codes, (aggTradeInfos: IAggTradeInfo[]) => {
         // console.log("aggTradeInfos: ", aggTradeInfos)
+        if (aggTradeInfos && aggTradeInfos.length > 0) {
+          if (selectedRef.current.exchange !== aggTradeInfos[0].exchange || selectedRef.current.marketInfo.marketType !== aggTradeInfos[0].marketInfo.marketType) {
+            const ws = wsRef.current.get(WS_TYPE.BINANCE_SPOT_TICKER);
+            ws?.close();
+            wsRef.current.delete(WS_TYPE.BINANCE_SPOT_TICKER)
+            return;
+          }
+        }
         aggTradeInfos.forEach((aggTradeInfo: IAggTradeInfo) => {
-          if (selectedRef.current.exchange !== aggTradeInfo.exchange || selectedRef.current.market.value !== aggTradeInfo.market) {
+          if (selectedRef.current.exchange !== aggTradeInfo.exchange || selectedRef.current.marketInfo.market !== aggTradeInfo.marketInfo.market) {
             return;
           }
           if (aggTradeInfo.price === 0 || (!aggTradeInfo.bestBidPrice || !aggTradeInfo.bestAskPrice || aggTradeInfo.bestBidPrice === 0 && aggTradeInfo.bestAskPrice === 0)) {
@@ -444,7 +457,7 @@ const PrimiumTable: React.FC = () => {
           tradeMapRef.current.set(aggTradeInfo.symbol, aggTradeInfo);
           const orderBook: IOrderBook = {
             exchange: aggTradeInfo.exchange,
-            market: aggTradeInfo.market,
+            marketInfo: {...aggTradeInfo.marketInfo},
             symbol: aggTradeInfo.symbol,
             coinPair: aggTradeInfo.coinPair,
             bid: [{price: aggTradeInfo.bestBidPrice ?? 0, qty: aggTradeInfo.bestBidQty ?? 0}],
@@ -472,16 +485,94 @@ const PrimiumTable: React.FC = () => {
           } 
         }
       })
-      wsRef.current.set(EXCHANGE.BINANCE, tickerWs);
+      wsRef.current.set(WS_TYPE.BINANCE_SPOT_TICKER, spotTickerWs);
+
+      const usdMFutureTickerWs = await startWebsocket(WS_TYPE.BINANCE_USD_M_FUTURE_TICKER, codes, (aggTradeInfos: IAggTradeInfo[]) => {
+        if (aggTradeInfos && aggTradeInfos.length > 0) {
+          if (selectedRef.current.exchange !== aggTradeInfos[0].exchange || selectedRef.current.marketInfo.marketType !== aggTradeInfos[0].marketInfo.marketType) {
+            const ws = wsRef.current.get(WS_TYPE.BINANCE_USD_M_FUTURE_TICKER);
+            ws?.close();
+            console.log("close BINANCE_USD_M_FUTURE_TICKER")
+            wsRef.current.delete(WS_TYPE.BINANCE_USD_M_FUTURE_TICKER)
+            return;
+          }
+        }
+        let rowData: DataType[] = []
+        aggTradeInfos.forEach((aggTradeInfo: IAggTradeInfo) => {
+          if (selectedRef.current.exchange !== aggTradeInfo.exchange || selectedRef.current.marketInfo.market !== aggTradeInfo.marketInfo.market) {
+            return;
+          }
+          tradeMapRef.current.set(aggTradeInfo.symbol, aggTradeInfo);
+          let data = createDataType(aggTradeInfo.symbol)
+          if (data) rowData.push(data)
+        });
+  
+        if (aggTradeInfos?.length > 1) {
+          console.log("BINANCE_USD_M_FUTURE_TICKER: ", tradeMapRef.current.size)
+          resolve(true)
+          return;
+        }
+        if (aggTradeInfos?.length === 1) {
+          if (isLoadingRef.current === true || rowData.length === 0 || rowData[0] === null) return;
+          const rowNode = gridRef?.current?.api?.getRowNode(rowData[0].id);
+          const preData: DataType = rowNode?.data;
+          rowNode?.setData(rowData[0]);          
+          if (preData) {
+            if (preData.primium != rowData[0].primium || preData.primiumEnter != rowData[0].primiumEnter || preData.primiumExit != rowData[0].primiumExit 
+              || preData.tether != rowData[0].tether || preData.tetherEnter != rowData[0].tetherEnter || preData.tetherExit != rowData[0].tetherExit) {
+              gridRef?.current?.api?.flashCells({rowNodes: [rowNode], flashDelay: 400, fadeDelay: 100,})
+            }
+          } 
+        }
+      })
+      wsRef.current.set(WS_TYPE.BINANCE_USD_M_FUTURE_TICKER, usdMFutureTickerWs);
+  
+      const coinMFutureTickerWs = await startWebsocket(WS_TYPE.BINANCE_COIN_M_FUTURE_TICKER, codes, (orderBooks: IOrderBook[]) => {
+        if (orderBooks && orderBooks.length > 0) {
+          if (selectedRef.current.exchange !== orderBooks[0].exchange || selectedRef.current.marketInfo.marketType !== orderBooks[0].marketInfo.marketType) {
+            const ws = wsRef.current.get(WS_TYPE.BINANCE_COIN_M_FUTURE_TICKER);
+            ws?.close();
+            console.log("close BINANCE_COIN_M_FUTURE_TICKER")
+            wsRef.current.delete(WS_TYPE.BINANCE_COIN_M_FUTURE_TICKER)
+            return;
+          }
+        }
+        orderBooks.forEach((orderBook: IOrderBook) => {
+          if (selectedRef.current.exchange !== orderBook.exchange || selectedRef.current.marketInfo.market !== orderBook.marketInfo.market) {
+            return;
+          }
+          orderBookMapRef.current.set(orderBook.symbol, orderBook);
+        });
+  
+        if (orderBooks?.length > 1) {
+          console.log("BINANCE_COIN_M_FUTURE_TICKER: ", tradeMapRef.current.size)
+          resolve(true)
+          return;
+        }
+  
+        if (orderBooks?.length === 1) {
+          if (isLoadingRef.current === true || rowData.length === 0 || rowData[0] === null) return;
+          const rowNode = gridRef?.current?.api?.getRowNode(rowData[0].id);
+          const preData: DataType = rowNode?.data;
+          rowNode?.setData(rowData[0]);          
+          if (preData) {
+            if (preData.primium != rowData[0].primium || preData.primiumEnter != rowData[0].primiumEnter || preData.primiumExit != rowData[0].primiumExit 
+              || preData.tether != rowData[0].tether || preData.tetherEnter != rowData[0].tetherEnter || preData.tetherExit != rowData[0].tetherExit) {
+              gridRef?.current?.api?.flashCells({rowNodes: [rowNode], flashDelay: 400, fadeDelay: 100,})
+            }
+          } 
+        }
+      })
+      wsRef.current.set(WS_TYPE.BINANCE_COIN_M_FUTURE_TICKER, coinMFutureTickerWs);
     })
   }, [])
 
-  const initBithumbWebSocket = useCallback(async (orderBookMapRef: MutableRefObject<Map<string, IOrderBook>>, tradeMapRef: MutableRefObject<Map<string, IAggTradeInfo>>, selectedRef: MutableRefObject<SelectedExchangeMarket>) => {
-    console.error("initBithumbWebSocket is not implemented yet.")
+  const initBithumbWebSocket = useCallback(async (orderBookMapRef: MutableRefObject<Map<string, IOrderBook>>, tradeMapRef: MutableRefObject<Map<string, IAggTradeInfo>>, selectedRef: MutableRefObject<ISelectedExchangeMarket>) => {
+    console.error("initBithumbWebSocket")
   }, [])
 
-  const initBybitWebSocket = useCallback(async (orderBookMapRef: MutableRefObject<Map<string, IOrderBook>>, tradeMapRef: MutableRefObject<Map<string, IAggTradeInfo>>, selectedRef: MutableRefObject<SelectedExchangeMarket>) => {
-    console.error("initBybitWebSocket is not implemented yet.")
+  const initBybitWebSocket = useCallback(async (orderBookMapRef: MutableRefObject<Map<string, IOrderBook>>, tradeMapRef: MutableRefObject<Map<string, IAggTradeInfo>>, selectedRef: MutableRefObject<ISelectedExchangeMarket>) => {
+    console.error("initBybitWebSocket")
   }, [])
 
   const onFilterTagChanged = useCallback((tags: any) => {
@@ -504,8 +595,8 @@ const PrimiumTable: React.FC = () => {
   }, []);
 
   const changeTradingView = useCallback((exchange_1: EXCHANGE, exchange_2: EXCHANGE, symbol: string, market_1: string, market_2: string) => {
-    const currency_1 = market_1.includes(MARKET.KRW)? MARKET.KRW : MARKET.USD;
-    const currency_2 = market_2.includes(MARKET.KRW)? MARKET.KRW : MARKET.USD;
+    const currency_1 = market_1.includes(MARKET_CURRENCY.KRW)? MARKET_CURRENCY.KRW : MARKET_CURRENCY.USD;
+    const currency_2 = market_2.includes(MARKET_CURRENCY.KRW)? MARKET_CURRENCY.KRW : MARKET_CURRENCY.USD;
     let newSymbol = ""
     // ( -1) * 100\
     // BINANCE:SANDUSDT*UPBIT:SANDKRW
@@ -516,10 +607,10 @@ const PrimiumTable: React.FC = () => {
     // newSymbol = `(${exchange_2}:${symbol}${market_2}/${exchange_2}:${symbol}${market_2}*${exchange_1}:${symbol}${market_1}-${exchange_2}:${symbol}${market_2}*FX_IDC:USDKRW)/(${exchange_2}:${symbol}${market_2}*FX_IDC:USDKRW)*100`;
     // return wrapNumber((price1 / (price2 * currency) - 1) * 100);
 
-    if (currency_1 === MARKET.KRW && currency_2 === MARKET.USD) {
+    if (currency_1 === MARKET_CURRENCY.KRW && currency_2 === MARKET_CURRENCY.USD) {
       newSymbol = `(${exchange_2}:${symbol}${market_2}/${exchange_2}:${symbol}${market_2}*${exchange_1}:${symbol}${market_1}-${exchange_2}:${symbol}${market_2}*FX_IDC:USDKRW)/(${exchange_2}:${symbol}${market_2}*FX_IDC:USDKRW)*100`;
       // newSymbol = `((${exchange_1}:${symbol}${market_1}/(${exchange_2}:${symbol}${market_2}*FX_IDC:USDKRW) - 1) * 100)`;
-    } else if (currency_1 === MARKET.USD && currency_2 === MARKET.KRW) {
+    } else if (currency_1 === MARKET_CURRENCY.USD && currency_2 === MARKET_CURRENCY.KRW) {
       newSymbol = `(${exchange_2}:${symbol}${market_2}/${exchange_2}:${symbol}${market_2}*${exchange_1}:${symbol}${market_1}*FX_IDC:USDKRW-${exchange_2}:${symbol}${market_2})/(${exchange_2}:${symbol}${market_2})*100`;
       // newSymbol = `((${exchange_1}:${symbol}${market_1}*FX_IDC:USDKRW)/${exchange_2}:${symbol}${market_2} - 1) * 100)`;
     } else {
@@ -527,32 +618,32 @@ const PrimiumTable: React.FC = () => {
       // newSymbol = `((${exchange_1}:${symbol}${market_1}/${exchange_2}:${symbol}${market_2} - 1) * 100)`;
     }
     
-    console.log("newSymbol: ", newSymbol)
+    // console.log("newSymbol: ", newSymbol)
     advancedRealTimeChartPropsRef.current = {...advancedRealTimeChartPropsRef.current, symbol: newSymbol}
     setAdvancedRealTimeChartProps(advancedRealTimeChartPropsRef.current)
   }, [])
 
   const onRowClicked = useCallback((event: any) => {
-    console.log("onRowClicked. event: ", event)
-    changeTradingView(event.data.exchange_1, event.data.exchange_2, event.data.symbol, event.data.market_1, event.data.market_2);
+    // console.log("onRowClicked. event: ", event)
+    changeTradingView(event.data.exchange_1, event.data.exchange_2, event.data.symbol, event.data.marketInfo_1.marketCurrency, event.data.marketInfo_2.marketCurrency);
   }, [])
 
-  const handleMarketChange_1 = useCallback((value: any) => {
-    selectedRef_1.current = {
-      exchange: value?.split("__")[0],
-      market: {value: value?.split("__")[1], label: <MenuItem title={value?.split("__")[1]} img={state.exchangeImgMap.get(value?.split("__")[0]?.toLowerCase())?.path} key={value} />}
-    }
+  const handleMarketChange_1 = useCallback((value: any, label: any) => {
+    const exchange: EXCHANGE = value?.split("__")[0];
+    const market: MARKET = value?.split("__")[1];
+    const marketInfo = getMarketInfo(exchange, market)
+    selectedRef_1.current = { exchange: value?.split("__")[0], marketInfo: {...marketInfo}, menuItem: {value: market, label} }
     initialize();
-    changeTradingView(selectedRef_1.current.exchange, selectedRef_2.current.exchange, "BTC", selectedRef_1.current.market.value, selectedRef_2.current.market.value);
+    changeTradingView(selectedRef_1.current.exchange, selectedRef_2.current.exchange, "BTC", selectedRef_1.current.marketInfo.marketCurrency, selectedRef_2.current.marketInfo.marketCurrency);
   }, []);
 
-  const handleMarketChange_2 = useCallback((value: any) => {
-    selectedRef_2.current = {
-      exchange: value?.split("__")[0],
-      market: {value: value?.split("__")[1], label: <MenuItem title={value?.split("__")[1]} img={state.exchangeImgMap.get(value?.split("__")[0]?.toLowerCase())?.path} key={value} />}
-    }
+  const handleMarketChange_2 = useCallback((value: any, label: any) => {
+    const exchange: EXCHANGE = value?.split("__")[0];
+    const market: MARKET = value?.split("__")[1];
+    const marketInfo = getMarketInfo(exchange, market)
+    selectedRef_2.current = { exchange: exchange, marketInfo: {...marketInfo}, menuItem: {value: market, label} }
     initialize();
-    changeTradingView(selectedRef_1.current.exchange, selectedRef_2.current.exchange, "BTC", selectedRef_1.current.market.value, selectedRef_2.current.market.value);
+    changeTradingView(selectedRef_1.current.exchange, selectedRef_2.current.exchange, "BTC", selectedRef_1.current.marketInfo.marketCurrency, selectedRef_2.current.marketInfo.marketCurrency);
   }, []);
 
   if (!rowData) {
@@ -593,7 +684,7 @@ const PrimiumTable: React.FC = () => {
             <TreeSelect
               // showSearch
               style={{ width: 160, margin: "0px 5px" }}
-              value={selectedRef_1.current.market}
+              value={selectedRef_1.current.menuItem}
               dropdownStyle={{ maxHeight: 400, minWidth: 200, overflow: 'auto' }}
               placeholder="마켓_1"
               treeDefaultExpandAll
@@ -604,7 +695,7 @@ const PrimiumTable: React.FC = () => {
             <TreeSelect
               // showSearch
               style={{ width: 160, margin: "0px 5px" }}
-              value={selectedRef_2.current.market}
+              value={selectedRef_2.current.menuItem}
               dropdownStyle={{ maxHeight: 400, minWidth: 200, overflow: 'auto' }}
               placeholder="마켓_2"
               treeDefaultExpandAll

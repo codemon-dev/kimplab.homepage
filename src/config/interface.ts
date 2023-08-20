@@ -1,4 +1,4 @@
-import { ASK_BID, EXCHANGE, IMG_TYPE, MARKET } from "./enum";
+import { ASK_BID, EXCHANGE, IMG_TYPE, MARKET, MARKET_CURRENCY, MARKET_TYPE } from "./enum";
 
 export interface IExchangeCoinInfo {
     id?: number,
@@ -23,7 +23,7 @@ export interface IExchangeCoinInfo {
 
 export interface IAggTradeInfo {
     exchange: EXCHANGE,
-    market: MARKET,
+    marketInfo: IMarketInfo,
     symbol: string,
     coinPair: string,
     price: number,
@@ -55,7 +55,7 @@ export interface PriceQty {
 
 export interface IOrderBook {
     exchange: EXCHANGE,
-    market: MARKET,
+    marketInfo: IMarketInfo,
     symbol: string,
     coinPair: string,
     bid: PriceQty[],
@@ -83,4 +83,28 @@ export interface IFilterCondition {
     filterType: string;
     type: string;
     filter: string;
+}
+
+export interface IMenuOption {
+    value: string,
+    title?: any, 
+    label?: any,
+    key?: any,
+    selectable?: boolean,
+    disabled?: boolean,    
+    children?: IMenuOption[]
+    marketInfo?: IMarketInfo,
+  }
+
+export interface IMarketInfo {
+    exchange: EXCHANGE,
+    market: MARKET,
+    marketType: MARKET_TYPE,
+    marketCurrency: MARKET_CURRENCY,
+}
+
+export interface ISelectedExchangeMarket {
+    exchange: EXCHANGE,
+    marketInfo: IMarketInfo,
+    menuItem?: IMenuOption,
 }

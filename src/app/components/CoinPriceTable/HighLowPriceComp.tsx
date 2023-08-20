@@ -3,7 +3,7 @@ import { Row, Col, Typography, Space, Divider } from 'antd';
 import React, { useState, useEffect } from 'react';
 const { Title, Text } = Typography;
 
-export const CoinHighLowPrice = (props: any) => {    
+export const HighLowPriceComp = (props: any) => {    
     const [high, setHigh] = useState<string>('');
     const [low, setLow] = useState<string>('');
     const [highColor, setHighColor] = useState<string>('black')    
@@ -56,4 +56,4 @@ export const CoinHighLowPrice = (props: any) => {
     );
 };
 
-export default CoinHighLowPrice;
+export default HighLowPriceComp;

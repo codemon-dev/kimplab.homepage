@@ -3,7 +3,7 @@ import { Row, Col, Typography } from 'antd';
 import React, { useState, useEffect } from 'react';
 const { Title, Text } = Typography;
 
-export const CoinChangePrice = (props: any) => {    
+export const PriceChangeComp = (props: any) => {    
     const [change, setChange] = useState<string>('');
     const [changeRate, setChangeRate] = useState<string>('');
     const [color, setColor] = useState<string>('black')    
@@ -32,4 +32,4 @@ export const CoinChangePrice = (props: any) => {
     );
 };
 
-export default CoinChangePrice;
+export default PriceChangeComp;

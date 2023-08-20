@@ -122,8 +122,15 @@ export interface IBinanceOrderResponse {
 }
 
 export enum BINANCE_ENDPOINT {
-    API_EXCHANGEINFO = "/binance_exchangeinfo",
-    API_TICKER = "/binance_ticker",
+    API_SPOT_EXCHANGEINFO = "/binance_spot_exchangeinfo",
+    API_USD_M_FUTURE_EXCHANGEINFO = "/binance_usd_m_future_exchangeinfo",
+    API_COIN_M_FUTURE_EXCHANGEINFO = "/binance_coin_m_future_exchangeinfo",
+    API_SPOT_TICKER = "/binance_spot_ticker",
+    API_USD_M_FUTURE_TICKER = "/binance_usd_m_future_ticker",
+    API_COIN_M_FUTURE_TICKER = "/binance_coin_m_future_ticker",
+    API_USD_M_FUTURE_BOOK_TICKER = "/binance_usd_m_future_book_ticker",
+    API_COIN_M_FUTURE_BOOK_TICKER = "/binance_coin_m_future_book_ticker",
+    
   }
 
 export interface IBinanceUserTrade {
@@ -151,13 +158,13 @@ export interface IBinanceWSTickerResponse {
     p: string; // "0.0015",      // Price change
     P: string; // "250.00",      // Price change percent
     w: string; // "0.0018",      // Weighted average price
-    x: string; // "0.0009",      // First trade(F)-1 price (first trade before the 24hr rolling window)
+    x?: string; // "0.0009",      // First trade(F)-1 price (first trade before the 24hr rolling window)
     c: string; // "0.0025",      // Last price
     Q: string; // "10",          // Last quantity
-    b: string; // "0.0024",      // Best bid price
-    B: string; // "10",          // Best bid quantity
-    a: string; // "0.0026",      // Best ask price
-    A: string; // "100",         // Best ask quantity
+    b?: string; // "0.0024",      // Best bid price
+    B?: string; // "10",          // Best bid quantity
+    a?: string; // "0.0026",      // Best ask price
+    A?: string; // "100",         // Best ask quantity
     o: string; // "0.0010",      // Open price
     h: string; // "0.0025",      // High price
     l: string; // "0.0010",      // Low price
@@ -192,6 +199,16 @@ export interface IBinanceTickerResponse {
     firstId: number; //0,              // Trade IDs
     lastId: number; //60,
     count: number; //61              // Number of trades in the interval
+}
+
+export interface IBinanceBookTickerResponse 
+{
+    symbol: string; //"BTCUSDT",
+    bidPrice: string; //"4.00000000",
+    bidQty: string; //"431.00000000",
+    askPrice: string; //"4.00000200",
+    askQty: string; //"9.00000000",
+    time: number; //1589437530011   // Transaction time
 }
 
 export interface BinanceSocketPayload {

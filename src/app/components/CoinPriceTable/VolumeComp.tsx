@@ -3,7 +3,7 @@ import { Typography } from 'antd';
 import React, { useState, useEffect } from 'react';
 const { Text } = Typography;
 
-export const CoinVolume = (props: any) => {    
+export const VolumeComp = (props: any) => {    
     const [volume, setVolume] = useState<string>('');
 
     useEffect(() => {
@@ -24,4 +24,4 @@ export const CoinVolume = (props: any) => {
     );
 };
 
-export default CoinVolume;
+export default VolumeComp;

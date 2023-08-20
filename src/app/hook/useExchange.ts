@@ -1,7 +1,16 @@
 "use client"
 
 import { getInitialInfoUpbit, startOrderBookWebsocket, startTickerWebsocket, startTradeWebsocket } from "@/app/lib/exchange/upbit/upbitCtrl";
-import { binance_spot_startTickerWebsocket, getInitialInfoBinance } from "../lib/exchange/binance/binanceCtrl";
+import { 
+    binance_coin_m_future_startTickerWebsocket, 
+    binance_usd_m_future_startTickerWebsocket, 
+    binance_spot_startTickerWebsocket, 
+    getInitialInfoBinanceSpot, 
+    getInitialInfoBinanceUsdMFuture,
+    getInitialInfoBinanceCoinMFuture,
+    binance_usd_m_future_startOrderWebsocket,
+    binance_coin_m_future_startOrderWebsocket
+} from "../lib/exchange/binance/binanceCtrl";
 import { EXCHANGE, MARKET, WS_TYPE } from "@/config/enum";
 import { IAggTradeInfo, IExchangeCoinInfo, IOrderBook } from "@/config/interface";
 
@@ -12,7 +21,9 @@ function useExchange() {
             let exchangeConinInfos: Map<EXCHANGE, Map<string, IExchangeCoinInfo>> = new Map<EXCHANGE, Map<string, IExchangeCoinInfo>>();
             let promises: any = []
             promises.push(getInitialInfoUpbit());        
-            promises.push(getInitialInfoBinance());
+            promises.push(getInitialInfoBinanceSpot());
+            promises.push(getInitialInfoBinanceUsdMFuture());
+            promises.push(getInitialInfoBinanceCoinMFuture());
             const promiseRet = await Promise.all(promises);
             promiseRet?.forEach((ret: any) => {
                 if (ret && ret.length > 0) {
@@ -26,6 +37,7 @@ function useExchange() {
                     })
                 }
             })
+            // console.log("exchangeConinInfos: ", exchangeConinInfos)
             resolve(exchangeConinInfos);
         })
     }
@@ -61,12 +73,32 @@ function useExchange() {
                     if (listener) { listener(res) }
                 });
                 resolve(ws);
-            } else if (type === WS_TYPE.BINANCE_TICKER) {
+            } else if (type === WS_TYPE.BINANCE_SPOT_TICKER) {
                 const ws = binance_spot_startTickerWebsocket(codes, wsOptions, (res: IAggTradeInfo[]) => { 
                     if (listener) { listener(res) }
                 });
                 resolve(ws);
-            }           
+            } else if (type === WS_TYPE.BINANCE_USD_M_FUTURE_TICKER) {
+                const ws = binance_usd_m_future_startTickerWebsocket(codes, wsOptions, (res: IAggTradeInfo[]) => { 
+                    if (listener) { listener(res) }
+                });
+                resolve(ws);
+            } else if (type === WS_TYPE.BINANCE_COIN_M_FUTURE_TICKER) {
+                const ws = binance_coin_m_future_startTickerWebsocket(codes, wsOptions, (res: IAggTradeInfo[]) => { 
+                    if (listener) { listener(res) }
+                });
+                resolve(ws);
+            } else if (type === WS_TYPE.BINANCE_USD_M_FUTURE_ORDER_BOOK) {
+                const ws = binance_usd_m_future_startOrderWebsocket(codes, wsOptions, (res: IAggTradeInfo[]) => { 
+                    if (listener) { listener(res) }
+                });
+                resolve(ws);
+            } else if (type === WS_TYPE.BINANCE_COIN_M_FUTURE_ORDER_BOOK) {
+                const ws = binance_coin_m_future_startOrderWebsocket(codes, wsOptions, (res: IAggTradeInfo[]) => { 
+                    if (listener) { listener(res) }
+                });
+                resolve(ws);
+            }        
         })
     }
 
