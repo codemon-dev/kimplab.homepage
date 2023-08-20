@@ -3,13 +3,15 @@ import { ACTIONS } from "./actions";
 import { GlobalStoreContext, initialState, reducer } from "./store";
 import { useReducer, useEffect, useState, useRef } from 'react'
 import { IMG_TYPE } from "./../../config/enum"
-import { IImgInfo } from "@/config/interface";
+import { ICurrencyInfos, IImgInfo } from "@/config/interface";
 import { Spin } from "antd";
 import useExchange from "../hook/useExchange";
+import useCurrency from "../hook/useCurrency";
 
 // Create the provider component with types
 export function GlobalStoreProvider({children}: any) {
     const { getInitialInfo } = useExchange()
+    const { addListener, removeListener, start, stop } = useCurrency()
     const [state, dispatch] = useReducer(reducer, initialState);
     const isMount = useRef(false);
     const [isInitDone, setIsInitDone] = useState(false)
@@ -23,11 +25,14 @@ export function GlobalStoreProvider({children}: any) {
         initialize();
         return () => {
             isMount.current = false;
+            stop();
+            removeListener("storeProvider");
         }
     }, [])
 
     const initialize = async () => {
         let promises: any = []
+        initCurrencyInfoMonitor();
         promises.push(createImgInfoMap())
         promises.push(getInitialInfo())
         const promiseRet = await Promise.all(promises);
@@ -35,6 +40,14 @@ export function GlobalStoreProvider({children}: any) {
             dispatch({ type: ACTIONS.UPDATE_EXCHANGE_COIN_INFO, value: promiseRet[1]})
         }
         setIsInitDone(true);
+    }
+
+    const initCurrencyInfoMonitor = async () => {
+        addListener("storeProvider", (currencyInfos: ICurrencyInfos) => {
+            // console.log("currencyInfos: ", currencyInfos);
+            dispatch({ type: ACTIONS.UPDATE_CURRENCY_INFO, value: currencyInfos})
+        })
+        start();
     }
 
     const createImgInfoMap = async () => {

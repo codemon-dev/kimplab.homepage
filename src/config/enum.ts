@@ -76,3 +76,29 @@ export enum IMG_TYPE {
     EXCHANGE,
     ETC,
 } 
+
+export enum EXCHANGE_RATE_URL {
+    DUNAMU = 'http://quotation-api-cdn.dunamu.com/v1/forex/recent?codes=FRX.KRWUSD',
+    INVESTRING = 'https://api.investing.com/api/financialdata/650/historical/chart/?period=P1W&interval=PT1M&pointscount=60',
+
+    // 실시간
+    // YAHOO = 'https://query1.finance.yahoo.com/v8/finance/chart/KRW=X?region=US&lang=en-US&includePrePost=false&interval=1d&useYfid=false&range=1d&corsDomain=finance.yahoo.com&.tsrc=finance'
+    // 1분단위
+    YAHOO = 'https://query1.finance.yahoo.com/v8/finance/chart/KRW=X?region=US&lang=en-US&includePrePost=false&interval=1m&useYfid=false&range=1d&corsDomain=finance.yahoo.com&.tsrc=finance',
+    WEBULL = 'https://quotes-gw.webullfintech.com/api/stock/tickerRealTime/getQuote?tickerId=913344371&includeSecu=1&includeQuote=1&more=1',
+}
+
+export enum REWRITE_ENDPOINT {
+    CURRENCY_DUNAMU = "/currency_dunamu",
+    CURRENCY_INVESTING = "/currency_investing",
+    CURRENCY_YAHOO = "/currency_yahoo",
+    CURRENCY_WEEBULL = "/currency_weebull",
+}
+
+export enum CURRENCY_SITE_TYPE {
+    NONE= "NONE",
+    DUNAMU='DUNAMU',
+    INVESTRING="INVESTRING",
+    YAHOO = 'YAHOO',
+    WEBULL = 'WEBULL',
+}

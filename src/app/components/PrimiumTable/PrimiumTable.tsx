@@ -7,7 +7,7 @@ import _ from "lodash"
 import React, { useCallback, useMemo, useRef, useState, useEffect, MutableRefObject } from 'react';
 import useExchange from '@/app/hook/useExchange';
 import { useGlobalStore } from '@/app/hook/useGlobalStore';
-import { EXCHANGE, MARKET, MARKET_CURRENCY, MARKET_TYPE, WS_TYPE } from '@/config/enum';
+import { CURRENCY_SITE_TYPE, EXCHANGE, MARKET, MARKET_CURRENCY, MARKET_TYPE, WS_TYPE } from '@/config/enum';
 import { AdvancedRealTimeChart, AdvancedRealTimeChartProps } from 'react-ts-tradingview-widgets';
 import { ExchangeDefaultInfo } from '@/config/constants';
 import { IAggTradeInfo, IFilterCondition, IFilterModel, IMarketInfo, IMenuOption, IOrderBook, ISelectedExchangeMarket } from '@/config/interface';
@@ -79,7 +79,7 @@ const PrimiumTable: React.FC = () => {
   const wsRef = useRef<Map<WS_TYPE, any>>(new Map<WS_TYPE, any>())
 
   const [rowData, setRowData] = useState<DataType[]>([]);
-  const currenyPriceRef = useRef<number>(1300)
+  const currenyPriceRef = useRef<number>(0)
   const orderBookMapRef_1 = useRef<Map<string, IOrderBook>>(new Map<string, IOrderBook>())
   const orderBookMapRef_2 = useRef<Map<string, IOrderBook>>(new Map<string, IOrderBook>())
   const tradeMapRef_1 = useRef<Map<string, IAggTradeInfo>>(new Map<MARKET, IAggTradeInfo>())
@@ -197,6 +197,10 @@ const PrimiumTable: React.FC = () => {
       isMountRef.current = false
     }
   }, [])
+
+  useEffect(() => {
+    currenyPriceRef.current = state.currencyInfos.get(CURRENCY_SITE_TYPE.WEBULL)?.price ?? 0
+  }, [state.currencyInfos])
 
   const initialize = useCallback(async () => {
     isLoadingRef.current = true;    

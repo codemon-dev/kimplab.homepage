@@ -1,8 +1,8 @@
 // GlobalStore.tsx (note the .tsx extension for TypeScript files)
 import { createContext } from 'react';
 import { ACTIONS } from './actions';
-import { IAggTradeInfo, IExchangeCoinInfo, IImgInfo, IOrderBook } from '@/config/interface';
-import { EXCHANGE, IMG_TYPE, MARKET } from '@/config/enum';
+import { IAggTradeInfo, ICurrencyInfo, ICurrencyInfos, IExchangeCoinInfo, IImgInfo, IOrderBook } from '@/config/interface';
+import { CURRENCY_SITE_TYPE, EXCHANGE, IMG_TYPE, MARKET } from '@/config/enum';
 import _ from 'lodash'
 
 export type GlobalStoreState = {
@@ -18,6 +18,7 @@ export type GlobalStoreState = {
   binanceOrderBookWsInfoMap: Map<MARKET, Map<string, IOrderBook>>;
   bybitTradeWsInfoMap: Map<MARKET, Map<string, IAggTradeInfo>>;
   bybitOrderBookWsInfoMap: Map<MARKET, Map<string, IOrderBook>>;
+  currencyInfos: Map<CURRENCY_SITE_TYPE, ICurrencyInfo>;
 };
 
 type GlobalStoreType = {
@@ -45,11 +46,18 @@ export const initialState: GlobalStoreState = {
   binanceOrderBookWsInfoMap: new Map<MARKET, Map<string, IOrderBook>>(),
   bybitTradeWsInfoMap: new Map<MARKET, Map<string, IAggTradeInfo>>(),
   bybitOrderBookWsInfoMap: new Map<MARKET, Map<string, IOrderBook>>(),
+  currencyInfos: new Map<CURRENCY_SITE_TYPE, ICurrencyInfo>(),
 };
 
 // Create the reducer function with the types
 export const reducer = (state: GlobalStoreState, action: Action): GlobalStoreState => {
   switch (action.type) {
+    case ACTIONS.UPDATE_CURRENCY_INFO:
+      if (!action.value || action.value.length === 0) {
+        break;
+      }
+      state.currencyInfos = _.cloneDeep(action.value)
+      break;
     case ACTIONS.ADD_IMG_INFO:
       if (!action.value || action.value.length === 0 || !action.key) {
         break;
@@ -76,13 +84,13 @@ export const reducer = (state: GlobalStoreState, action: Action): GlobalStoreSta
       }
       const tradeInfo: IAggTradeInfo = action.value;
       if (action.key === EXCHANGE.UPBIT) {
-        state.upbitTradeWsInfoMap.get(tradeInfo.market)?.set(tradeInfo.coinPair, tradeInfo);
+        state.upbitTradeWsInfoMap.get(tradeInfo.marketInfo.market)?.set(tradeInfo.coinPair, tradeInfo);
       } else if (action.key === EXCHANGE.BITHUMB) {
-        state.bithumbTradeWsInfoMap.get(tradeInfo.market)?.set(tradeInfo.coinPair, tradeInfo);
+        state.bithumbTradeWsInfoMap.get(tradeInfo.marketInfo.market)?.set(tradeInfo.coinPair, tradeInfo);
       } else if (action.key === EXCHANGE.BINANCE) {
-        state.binanceTradeWsInfoMap.get(tradeInfo.market)?.set(tradeInfo.coinPair, tradeInfo);
+        state.binanceTradeWsInfoMap.get(tradeInfo.marketInfo.market)?.set(tradeInfo.coinPair, tradeInfo);
       } else if (action.key === EXCHANGE.BYBIT) {
-        state.bybitTradeWsInfoMap.get(tradeInfo.market)?.set(tradeInfo.coinPair, tradeInfo);
+        state.bybitTradeWsInfoMap.get(tradeInfo.marketInfo.market)?.set(tradeInfo.coinPair, tradeInfo);
       }
       break;
     case ACTIONS.UPDATE_ORDERBOOK_WS_INFO:
@@ -91,13 +99,13 @@ export const reducer = (state: GlobalStoreState, action: Action): GlobalStoreSta
       }
       const orderbook: IOrderBook = action.value;
       if (action.key === EXCHANGE.UPBIT) {
-        state.upbitOrderBookWsInfoMap.get(orderbook.market)?.set(orderbook.coinPair, orderbook);
+        state.upbitOrderBookWsInfoMap.get(orderbook.marketInfo.market)?.set(orderbook.coinPair, orderbook);
       } else if (action.key === EXCHANGE.BITHUMB) {
-        state.bithumbOrderBookWsInfoMap.get(orderbook.market)?.set(orderbook.coinPair, orderbook);
+        state.bithumbOrderBookWsInfoMap.get(orderbook.marketInfo.market)?.set(orderbook.coinPair, orderbook);
       } else if (action.key === EXCHANGE.BINANCE) {
-        state.binanceOrderBookWsInfoMap.get(orderbook.market)?.set(orderbook.coinPair, orderbook);
+        state.binanceOrderBookWsInfoMap.get(orderbook.marketInfo.market)?.set(orderbook.coinPair, orderbook);
       } else if (action.key === EXCHANGE.BYBIT) {
-        state.bybitOrderBookWsInfoMap.get(orderbook.market)?.set(orderbook.coinPair, orderbook);
+        state.bybitOrderBookWsInfoMap.get(orderbook.marketInfo.market)?.set(orderbook.coinPair, orderbook);
       }
       break;
     default:
