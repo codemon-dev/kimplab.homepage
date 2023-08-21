@@ -358,16 +358,17 @@ export const binance_usd_m_future_startTickerWebsocket = async (codes: string[],
                 const preAggTradeInfo = aggTradeInfoMap.get(coinPair)
                 if (!preAggTradeInfo) continue;
                 if (ticker.e === "24hrTicker") {
+                    const bookTicker: IBinanceBookTickerResponse | undefined = bookTickerMap.get(ticker.s)
                     let aggTradeInfo: IAggTradeInfo = {
                         exchange: EXCHANGE.BINANCE,
                         marketInfo: {exchange: EXCHANGE.BINANCE, market: market as MARKET, marketType: MARKET_TYPE.USD_M_FUTURE_PERF, marketCurrency: marketCurrency as MARKET_CURRENCY},
                         symbol: symbol,
                         coinPair: coinPair,
                         price: parseFloat(ticker.c),
-                        bestBidPrice: preAggTradeInfo.bestBidPrice,
-                        bestBidQty: preAggTradeInfo.bestBidQty,
-                        bestAskPrice: preAggTradeInfo.bestAskPrice,
-                        bestAskQty: preAggTradeInfo.bestAskQty,
+                        bestBidPrice: bookTicker?.bidPrice? parseFloat(bookTicker?.bidPrice ?? "0") : preAggTradeInfo.bestBidPrice,
+                        bestBidQty: bookTicker?.bidQty? parseFloat(bookTicker?.bidQty ?? "0"): preAggTradeInfo.bestBidQty,
+                        bestAskPrice: bookTicker?.askPrice? parseFloat(bookTicker?.askPrice ?? "0"): preAggTradeInfo.bestAskPrice,
+                        bestAskQty: bookTicker?.askQty? parseFloat(bookTicker?.askQty ?? "0"): preAggTradeInfo.bestAskQty,
                         accVolume: undefined,
                         accVolume_24h: parseFloat(ticker.v),
                         accTradePrice: undefined,
@@ -391,7 +392,18 @@ export const binance_usd_m_future_startTickerWebsocket = async (codes: string[],
                     aggTradeInfo.bestAskPrice = parseFloat(ticker.a ?? "0");
                     aggTradeInfo.bestAskQty = parseFloat(ticker.A ?? "0");
                     // console.log("ddd aggTradeInfo: ", aggTradeInfo);
-                    aggTradeInfoMap.set(coinPair, aggTradeInfo)
+                    //aggTradeInfoMap.set(coinPair, aggTradeInfo)
+                    if (ticker.s && ticker.b && ticker.B && ticker.a && ticker.A) {
+                        let bookTickerRes: IBinanceBookTickerResponse = {
+                            symbol: ticker.s ?? aggTradeInfo.symbol,
+                            bidPrice: ticker.b?? aggTradeInfo.bestBidPrice,
+                            bidQty: ticker.B?? aggTradeInfo.bestBidQty,
+                            askPrice: ticker.a?? "",
+                            askQty: ticker.A?? "",
+                            time: ticker.E
+                        }
+                        bookTickerMap.set(ticker.s, bookTickerRes)
+                    }
                     listener([aggTradeInfo]);
                 }
             }
@@ -540,6 +552,7 @@ export const binance_coin_m_future_startTickerWebsocket = async (codes: string[]
                 const {symbol, coinPair, market, marketCurrency} = parseCoinInfoFromCoinPair(EXCHANGE.BINANCE, MARKET_TYPE.COIN_M_FUTURE_PERF, ticker.s)
                 const preAggTradeInfo = aggTradeInfoMap.get(coinPair)
                 if (!preAggTradeInfo) continue;
+                const bookTicker: IBinanceBookTickerResponse | undefined = bookTickerMap.get(ticker.s)
                 if (ticker.e === "24hrTicker") {
                     let aggTradeInfo: IAggTradeInfo = {
                         exchange: EXCHANGE.BINANCE,
@@ -547,10 +560,10 @@ export const binance_coin_m_future_startTickerWebsocket = async (codes: string[]
                         symbol: symbol,
                         coinPair: coinPair,
                         price: parseFloat(ticker.c),
-                        bestBidPrice: preAggTradeInfo.bestBidPrice,
-                        bestBidQty: preAggTradeInfo.bestBidQty,
-                        bestAskPrice: preAggTradeInfo.bestAskPrice,
-                        bestAskQty: preAggTradeInfo.bestAskQty,
+                        bestBidPrice: bookTicker?.bidPrice? parseFloat(bookTicker?.bidPrice ?? "0") : preAggTradeInfo.bestBidPrice,
+                        bestBidQty: bookTicker?.bidQty? parseFloat(bookTicker?.bidQty ?? "0"): preAggTradeInfo.bestBidQty,
+                        bestAskPrice: bookTicker?.askPrice? parseFloat(bookTicker?.askPrice ?? "0"): preAggTradeInfo.bestAskPrice,
+                        bestAskQty: bookTicker?.askQty? parseFloat(bookTicker?.askQty ?? "0"): preAggTradeInfo.bestAskQty,
                         accVolume: undefined,
                         accVolume_24h: parseFloat(ticker.v),
                         accTradePrice: undefined,
@@ -573,8 +586,19 @@ export const binance_coin_m_future_startTickerWebsocket = async (codes: string[]
                     aggTradeInfo.bestBidQty = parseFloat(ticker.B ?? "0");
                     aggTradeInfo.bestAskPrice = parseFloat(ticker.a ?? "0");
                     aggTradeInfo.bestAskQty = parseFloat(ticker.A ?? "0");
-                    aggTradeInfoMap.set(coinPair, aggTradeInfo)
                     // console.log("ddd aggTradeInfo: ", aggTradeInfo);
+                    //aggTradeInfoMap.set(coinPair, aggTradeInfo)
+                    if (ticker.s && ticker.b && ticker.B && ticker.a && ticker.A) {
+                        let bookTickerRes: IBinanceBookTickerResponse = {
+                            symbol: ticker.s ?? aggTradeInfo.symbol,
+                            bidPrice: ticker.b?? aggTradeInfo.bestBidPrice,
+                            bidQty: ticker.B?? aggTradeInfo.bestBidQty,
+                            askPrice: ticker.a?? "",
+                            askQty: ticker.A?? "",
+                            time: ticker.E
+                        }
+                        bookTickerMap.set(ticker.s, bookTickerRes)
+                    }
                     listener([aggTradeInfo]);
                 }
             }
