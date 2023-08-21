@@ -1,7 +1,5 @@
 /** @type {import('next').NextConfig} */
 
-/** @type {import('next').NextConfig} */
-
 const rewrites = async () => {
     return [
         {
@@ -49,6 +47,14 @@ const rewrites = async () => {
             destination: "https://dapi.binance.com/dapi/v1/ticker/bookTicker"
         },
         {
+            source: "/binance_usd_m_future_market_price",
+            destination: "https://fapi.binance.com/fapi/v1/premiumIndex"
+        },
+        {
+            source: "/binance_coin_m_future_market_price",
+            destination: "https://dapi.binance.com/dapi/v1/premiumIndex"
+        },
+        {
             source: "/currency_dunamu",
             destination: 'http://quotation-api-cdn.dunamu.com/v1/forex/recent?codes=FRX.KRWUSD'
         },
@@ -77,13 +83,3 @@ const nextConfig = {
 }
 
 module.exports = nextConfig
-
-
-// const rewrites = async () => {
-//     return [
-//         {
-//             source: "/v1/market/all",
-//             destination: "https://api.upbit.com/"
-//         }
-//     ]
-// }

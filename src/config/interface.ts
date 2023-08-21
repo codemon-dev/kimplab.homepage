@@ -48,6 +48,16 @@ export interface IAggTradeInfo {
     timestamp: number
 }
 
+export interface IFundingFeeInfo {
+    exchange: EXCHANGE,
+    marketInfo: IMarketInfo,
+    symbol: string,
+    coinPair: string,
+    fundingRate: number,
+    nextTimestamp: number,
+    timestamp: number,
+}
+
 export interface PriceQty {
     price: number,
     qty: number

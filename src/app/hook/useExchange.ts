@@ -9,10 +9,12 @@ import {
     getInitialInfoBinanceUsdMFuture,
     getInitialInfoBinanceCoinMFuture,
     binance_usd_m_future_startOrderWebsocket,
-    binance_coin_m_future_startOrderWebsocket
+    binance_coin_m_future_startOrderWebsocket,
+    binance_usd_m_future_startMarketPriceWebsocket,
+    binance_coin_m_future_startMarketPriceWebsocket
 } from "../lib/exchange/binance/binanceCtrl";
 import { EXCHANGE, MARKET, WS_TYPE } from "@/config/enum";
-import { IAggTradeInfo, IExchangeCoinInfo, IOrderBook } from "@/config/interface";
+import { IAggTradeInfo, IExchangeCoinInfo, IFundingFeeInfo, IOrderBook } from "@/config/interface";
 
 function useExchange() {
     let socketMap: Map<string, any> = new Map<string, any>();
@@ -98,7 +100,17 @@ function useExchange() {
                     if (listener) { listener(res) }
                 });
                 resolve(ws);
-            }        
+            } else if (type === WS_TYPE.BINANCE_USD_M_FUTURE_MARKET_PRICE) {
+                const ws = binance_usd_m_future_startMarketPriceWebsocket(codes, wsOptions, (res: IFundingFeeInfo[]) => { 
+                    if (listener) { listener(res) }
+                });
+                resolve(ws);
+            } else if (type === WS_TYPE.BINANCE_COIN_M_FUTURE_MARKET_PRICE) {
+                const ws = binance_coin_m_future_startMarketPriceWebsocket(codes, wsOptions, (res: IFundingFeeInfo[]) => { 
+                    if (listener) { listener(res) }
+                });
+                resolve(ws);
+            }
         })
     }
 

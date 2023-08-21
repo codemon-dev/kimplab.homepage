@@ -2,9 +2,9 @@
 
 import { v4 as uuidv4 } from "uuid";
 import { ASK_BID, EXCHANGE, FETCH_METHOD, MARKET, MARKET_CURRENCY, MARKET_TYPE } from "@/config/enum";
-import { BINANCE_ENDPOINT, BinanceSocketPayload, IBinanceAggTrade, IBinanceBookTickerResponse, IBinanceTickerResponse, IBinanceWSTickerResponse } from "./IBinance";
+import { BINANCE_ENDPOINT, BinanceSocketPayload, IBinanceAggTrade, IBinanceBookTickerResponse, IBinanceMarketPriceResponse, IBinanceTickerResponse, IBinanceWSMarketPriceResponse, IBinanceWSTickerResponse } from "./IBinance";
 import ReconnectingWebSocket from "reconnecting-websocket";
-import { IAggTradeInfo, IExchangeCoinInfo, PriceQty } from "@/config/interface";
+import { IAggTradeInfo, IExchangeCoinInfo, IFundingFeeInfo, PriceQty } from "@/config/interface";
 import { parseCoinInfoFromCoinPair } from "@/app/helper/cryptoHelper";
 import _ from "lodash";
 
@@ -629,6 +629,234 @@ export const binance_coin_m_future_startTickerWebsocket = async (codes: string[]
             console.log("[BINANCE] onclose", event)
         } catch (err: any) {
             console.error("[BINANCE] tickerWS.onclose err: ", err)
+        }
+    };
+    return ws;
+}
+
+export const binance_usd_m_future_startMarketPriceWebsocket = async (codes: string[], options: any, listener: any) => {
+    const response = await fetch(BINANCE_ENDPOINT.API_USD_M_FUTURE_MARKET_PRICE, {method: FETCH_METHOD.GET, headers: header, body: null});
+    let fundingFeeInfosMap: Map<string, IFundingFeeInfo> = new Map<string, IFundingFeeInfo>();
+    
+    if (!response) return null;
+    if (response.status !== 200) {
+        console.log("[BINANCE] getInitialInfo response error: ", response);
+        return null;
+    }
+    let jsonData = null;
+    try {
+        jsonData = await response.json();
+    } catch (err: any) {
+        console.log("err: ", err)
+    }
+    let fundingFeeInfos: IFundingFeeInfo[] = []
+    let marketPriceRes: IBinanceMarketPriceResponse[] = jsonData;
+    const codesMap = new Map<string, string>()
+    for (const marketPrice of marketPriceRes) {   
+        const {symbol, coinPair, market, marketCurrency} = parseCoinInfoFromCoinPair(EXCHANGE.BINANCE, MARKET_TYPE.USD_M_FUTURE_PERF, marketPrice.symbol)        
+        if (!symbol || symbol === "" || parseFloat(marketPrice.markPrice) === 0 || !marketPrice.lastFundingRate) {
+            // console.log("skip ticker: ", ticker)
+            continue;
+        }
+        let fundingFeeInfo: IFundingFeeInfo = {
+            exchange: EXCHANGE.BINANCE,
+            marketInfo: {exchange: EXCHANGE.BINANCE, market: market as MARKET, marketType: MARKET_TYPE.USD_M_FUTURE_PERF, marketCurrency: marketCurrency as MARKET_CURRENCY},
+            symbol,
+            coinPair,
+            fundingRate: parseFloat(marketPrice.lastFundingRate) * 100,
+            nextTimestamp: marketPrice.nextFundingTime,
+            timestamp: marketPrice.time,
+        }
+        codesMap.set(coinPair, marketPrice.symbol);
+        fundingFeeInfos.push(fundingFeeInfo)
+        fundingFeeInfosMap.set(coinPair, fundingFeeInfo)
+    }
+    listener(fundingFeeInfos);
+
+    let ws: ReconnectingWebSocket | undefined;
+    let payload: BinanceSocketPayload = {
+        id: 1,
+        method: "SUBSCRIBE",
+        params: [
+            "!markPrice@arr",
+        ],
+    }
+    ws?.close();
+    ws = new ReconnectingWebSocket(usdMfutureMarketStreamUrlProvider, [], options);
+    ws.addEventListener('message', (payload) => {
+        try {
+            let res: any = JSON.parse(payload.data);
+            if (!res) return;
+            if (res?.e === 'ping') {
+                ws?.send(JSON.stringify({ pong: res.ping ?? "" }));
+            } else if (res.id) {
+                console.log(res)
+                return;
+            }           
+            let marketPrices: IBinanceWSMarketPriceResponse[] = res;
+            let fundinfFeeInfos: IFundingFeeInfo[] = [];
+            for (const marketPrice of marketPrices) {
+                if (codesMap.has(marketPrice.s) === false) continue;
+                const {symbol, coinPair, market, marketCurrency} = parseCoinInfoFromCoinPair(EXCHANGE.BINANCE, MARKET_TYPE.USD_M_FUTURE_PERF, marketPrice.s)
+                if (marketPrice.e === "markPriceUpdate") {
+                    let fundingFeeInfo: IFundingFeeInfo = {
+                        exchange: EXCHANGE.BINANCE,
+                        marketInfo: {exchange: EXCHANGE.BINANCE, market: market as MARKET, marketType: MARKET_TYPE.USD_M_FUTURE_PERF, marketCurrency: marketCurrency as MARKET_CURRENCY},
+                        symbol,
+                        coinPair,
+                        fundingRate: parseFloat(marketPrice.r) * 100,
+                        nextTimestamp: marketPrice.T,
+                        timestamp: marketPrice.E,
+                    }
+                    fundinfFeeInfos.push(fundingFeeInfo);
+                    // fundingFeeInfosMap.set(coinPair, fundingFeeInfo)
+                    // console.log("fundingFeeInfo: ", fundingFeeInfo)
+                }
+            }
+            if (fundinfFeeInfos && fundinfFeeInfos.length > 0) {
+                listener(fundinfFeeInfos);
+            }
+        }
+        catch (err) {
+            console.log("err:" , err)
+        }
+    })
+    ws.onopen = (event) => {
+        console.log("[BINANCE USD-M FUTURE] marketPrice ws onopen", event)
+        try {
+            ws?.send(`${JSON.stringify(payload)}`)
+        } catch (err: any) {
+            console.error("[BINANCE USD-M FUTURE] marketPrice ws.onopen err: ", err)
+        }
+        
+    };
+    ws.onerror = (event) => {
+        try {
+            console.log("[BINANCE USD-M FUTURE] marketPrice ws onerror", event)
+        } catch (err: any) {
+            console.error("[BINANCE USD-M FUTURE] marketPrice ws.onerror err: ", err)
+        }
+        
+    };
+    ws.onclose = (event) => {
+        try {
+            console.log("[BINANCE USD-M FUTURE] marketPrice wsonclose", event)
+        } catch (err: any) {
+            console.error("[BINANCE USD-M FUTURE] marketPrice ws.onclose err: ", err)
+        }
+    };
+    return ws;
+}
+
+export const binance_coin_m_future_startMarketPriceWebsocket = async (codes: string[], options: any, listener: any) => {
+    const response = await fetch(BINANCE_ENDPOINT.API_COIN_M_FUTURE_MARKET_PRICE, {method: FETCH_METHOD.GET, headers: header, body: null});
+    let fundingFeeInfosMap: Map<string, IFundingFeeInfo> = new Map<string, IFundingFeeInfo>();
+    
+    if (!response) return null;
+    if (response.status !== 200) {
+        console.log("[BINANCE] getInitialInfo response error: ", response);
+        return null;
+    }
+    let jsonData = null;
+    try {
+        jsonData = await response.json();
+    } catch (err: any) {
+        console.log("err: ", err)
+    }
+    let fundingFeeInfos: IFundingFeeInfo[] = []
+    let marketPriceRes: IBinanceMarketPriceResponse[] = jsonData;
+    const codesMap = new Map<string, string>()
+    for (const marketPrice of marketPriceRes) {   
+        const {symbol, coinPair, market, marketCurrency} = parseCoinInfoFromCoinPair(EXCHANGE.BINANCE, MARKET_TYPE.COIN_M_FUTURE_PERF, marketPrice.symbol)        
+        if (!symbol || symbol === "" || parseFloat(marketPrice.markPrice) === 0 || !marketPrice.lastFundingRate) {
+            // console.log("skip ticker: ", ticker)
+            continue;
+        }
+        let fundingFeeInfo: IFundingFeeInfo = {
+            exchange: EXCHANGE.BINANCE,
+            marketInfo: {exchange: EXCHANGE.BINANCE, market: market as MARKET, marketType: MARKET_TYPE.COIN_M_FUTURE_PERF, marketCurrency: marketCurrency as MARKET_CURRENCY},
+            symbol,
+            coinPair,
+            fundingRate: parseFloat(marketPrice.lastFundingRate) * 100,
+            nextTimestamp: marketPrice.nextFundingTime,
+            timestamp: marketPrice.time,
+        }
+        codesMap.set(coinPair, marketPrice.symbol);
+        fundingFeeInfos.push(fundingFeeInfo)
+        fundingFeeInfosMap.set(coinPair, fundingFeeInfo)
+    }
+    listener(fundingFeeInfos);
+
+    let ws: ReconnectingWebSocket | undefined;
+    let payload: BinanceSocketPayload = {
+        id: 1,
+        method: "SUBSCRIBE",
+        params: [
+            "!markPrice@arr",
+        ],
+    }
+    ws?.close();
+    ws = new ReconnectingWebSocket(usdMfutureMarketStreamUrlProvider, [], options);
+    ws.addEventListener('message', (payload) => {
+        try {
+            let res: any = JSON.parse(payload.data);
+            if (!res) return;
+            if (res?.e === 'ping') {
+                ws?.send(JSON.stringify({ pong: res.ping ?? "" }));
+            } else if (res.id) {
+                console.log(res)
+                return;
+            }           
+            let marketPrices: IBinanceWSMarketPriceResponse[] = res;
+            let fundinfFeeInfos: IFundingFeeInfo[] = []
+            for (const marketPrice of marketPrices) {
+                if (codesMap.has(marketPrice.s) === false) continue;
+                const {symbol, coinPair, market, marketCurrency} = parseCoinInfoFromCoinPair(EXCHANGE.BINANCE, MARKET_TYPE.COIN_M_FUTURE_PERF, marketPrice.s)
+                if (marketPrice.e === "markPriceUpdate") {
+                    let fundingFeeInfo: IFundingFeeInfo = {
+                        exchange: EXCHANGE.BINANCE,
+                        marketInfo: {exchange: EXCHANGE.BINANCE, market: market as MARKET, marketType: MARKET_TYPE.COIN_M_FUTURE_PERF, marketCurrency: marketCurrency as MARKET_CURRENCY},
+                        symbol,
+                        coinPair,
+                        fundingRate: parseFloat(marketPrice.r) * 100,
+                        nextTimestamp: marketPrice.T,
+                        timestamp: marketPrice.E,
+                    }
+                    fundinfFeeInfos.push(fundingFeeInfo);
+                    // fundingFeeInfosMap.set(coinPair, fundingFeeInfo)
+                    // console.log("fundingFeeInfo: ", fundingFeeInfo)
+                }
+            }
+            if (fundinfFeeInfos && fundinfFeeInfos.length > 0) {
+                listener(fundinfFeeInfos);
+            }
+        }
+        catch (err) {
+            console.log("err:" , err)
+        }
+    })
+    ws.onopen = (event) => {
+        console.log("[BINANCE COIN-M FUTURE] marketPrice ws onopen", event)
+        try {
+            ws?.send(`${JSON.stringify(payload)}`)
+        } catch (err: any) {
+            console.error("[BINANCE COIN-M FUTURE] marketPrice ws.onopen err: ", err)
+        }
+        
+    };
+    ws.onerror = (event) => {
+        try {
+            console.log("[BINANCE COIN-M FUTURE] marketPrice ws onerror", event)
+        } catch (err: any) {
+            console.error("[BINANCE COIN-M FUTURE] marketPrice ws.onerror err: ", err)
+        }
+        
+    };
+    ws.onclose = (event) => {
+        try {
+            console.log("[BINANCE COIN-M FUTURE] marketPrice wsonclose", event)
+        } catch (err: any) {
+            console.error("[BINANCE COIN-M FUTURE] marketPrice ws.onclose err: ", err)
         }
     };
     return ws;

@@ -130,6 +130,8 @@ export enum BINANCE_ENDPOINT {
     API_COIN_M_FUTURE_TICKER = "/binance_coin_m_future_ticker",
     API_USD_M_FUTURE_BOOK_TICKER = "/binance_usd_m_future_book_ticker",
     API_COIN_M_FUTURE_BOOK_TICKER = "/binance_coin_m_future_book_ticker",
+    API_USD_M_FUTURE_MARKET_PRICE = "/binance_usd_m_future_market_price",
+    API_COIN_M_FUTURE_MARKET_PRICE = "/binance_coin_m_future_market_price",
     
   }
 
@@ -175,6 +177,28 @@ export interface IBinanceWSTickerResponse {
     F: number; // 0,             // First trade ID
     L: number; // 18150,         // Last trade Id
     n: number; // 18151          // Total number of trades
+}
+
+export interface IBinanceWSMarketPriceResponse {
+    e: string;  //"markPriceUpdate",     // Event type
+    E: number;  //1562305380000,         // Event time
+    s: string;  //"BTCUSDT",             // Symbol
+    p: string;  //"11794.15000000",      // Mark price
+    i: string;  //"11784.62659091",      // Index price
+    P: string;  //"11784.25641265",      // Estimated Settle Price, only useful in the last hour before the settlement starts
+    r: string;  //"0.00038167",          // Funding rate
+    T: number;  //1562306400000          // Next funding time
+  }
+
+export interface IBinanceMarketPriceResponse {
+    symbol: string; //"BTCUSDT",
+    markPrice: string; //"11793.63104562",  // mark price
+    indexPrice: string; //"11781.80495970", // index price
+    estimatedSettlePrice: string; //"11781.16138815", // Estimated Settle Price, only useful in the last hour before the settlement starts.
+    lastFundingRate: string; //"0.00038246",  // This is the Latest funding rate
+    nextFundingTime: number; //1597392000000,
+    interestRate: string; //"0.00010000",
+    time: number; //1597370495002
 }
 
 export interface IBinanceTickerResponse {
