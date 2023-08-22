@@ -1,0 +1,11 @@
+.price-column {
+  min-width: 150px
+}
+
+.price-rate-column {
+  min-width: 120px
+}
+
+.ant-table-title {
+  padding: 0
+}

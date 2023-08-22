@@ -17,7 +17,7 @@ export default function RootLayout({ children }: PropsWithChildren) {
       <Layout className="layout" style={{ minHeight: "100vh", minWidth: "100vw"}}>
         {contextHolder}
         <HeaderComp />                
-        <Content style={{ padding: '0px 50px', paddingTop: "20px", display: "flex", flexDirection:'column', flex: 1}}>
+        <Content style={{ padding: '0px 20px', paddingTop: "20px", display: "flex", flexDirection:'column', flex: 1}}>
           <div className="site-layout-content" style={{display: "flex", flex: 1, width: "100%", height: "100%"}}>
             {children}
           </div>
