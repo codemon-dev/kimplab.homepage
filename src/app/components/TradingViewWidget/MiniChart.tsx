@@ -1,23 +1,42 @@
 'use client'
 
-import React, { useEffect, useRef, memo } from 'react';
+import React, { useEffect, useRef, memo, useState } from 'react';
 
 export function MiniChart({exchange, coinPair}: any) {
     const isMountedRef = useRef(false)
     const container = useRef<any>();
     const colorTheme = useRef("light");  // dark / light
+    const [symbol, setSymbol] = useState(`${exchange}:${coinPair}`)
+    const scriptRef = useRef<any>();
+
+    useEffect(() => {
+      setSymbol(`${exchange}:${coinPair}`)
+      if (!scriptRef.current) return;
+      updateScript();
+    }, [exchange, coinPair])
 
     useEffect(() => {
         if (isMountedRef.current === true) {
             return;
         }
         isMountedRef.current = true;
+        createScript();
+        if (container.current) {
+            container.current.appendChild(scriptRef.current);
+        }
+        return () => {
+            isMountedRef.current = false;
+            return;
+        }
+      }, [] );
+
+      const createScript = () => {
         const script = document.createElement("script");
         script.src = "https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js";
         script.type = "text/javascript";
         script.async = true;
         script.innerHTML = `{
-          "symbol": "${exchange}:${coinPair}",
+          "symbol": "${symbol}",
           "width": "100%",
           "height": "100%",
           "locale": "en",
@@ -27,14 +46,12 @@ export function MiniChart({exchange, coinPair}: any) {
           "autosize": true,
           "largeChartUrl": ""
         }`;
-        if (container.current) {
-            container.current.appendChild(script);
-        }
-        return () => {
-            isMountedRef.current = false;
-            return;
-        }
-      }, [] );
+        scriptRef.current = script;
+      }
+
+      const updateScript = () => {        
+        container.current.appendChild(scriptRef.current);
+      }
 
     return (
         <div className="tradingview-widget-container" ref={container}>
@@ -43,4 +60,4 @@ export function MiniChart({exchange, coinPair}: any) {
     );
 }
 
-export default memo(MiniChart);
+export default MiniChart;

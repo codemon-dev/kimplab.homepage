@@ -42,7 +42,7 @@ export function TradingViewWidgetHeatMap() {
 
     return (
         <div className="tradingview-widget-container" ref={container}>
-        <div className="tradingview-widget-container__widget"></div>
+            <div className="tradingview-widget-container__widget"></div>
         </div>
     );
 }

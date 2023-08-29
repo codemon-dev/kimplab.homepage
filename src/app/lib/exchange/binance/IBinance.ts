@@ -132,7 +132,7 @@ export enum BINANCE_ENDPOINT {
     API_COIN_M_FUTURE_BOOK_TICKER = "/binance_coin_m_future_book_ticker",
     API_USD_M_FUTURE_MARKET_PRICE = "/binance_usd_m_future_market_price",
     API_COIN_M_FUTURE_MARKET_PRICE = "/binance_coin_m_future_market_price",
-    
+    API_COIN_M_FUTURE_GLOBAL_LONG_SHORT_RATIO = "/binance_coin_m_future_global_long_short_ratio",    
   }
 
 export interface IBinanceUserTrade {
@@ -235,8 +235,17 @@ export interface IBinanceBookTickerResponse
     time: number; //1589437530011   // Transaction time
 }
 
-export interface BinanceSocketPayload {
+export interface IBinanceSocketPayload {
     id: number
     method: string
     params?: any
+}
+
+export interface IBinanceLongShortRatioResponse
+{ 
+    symbol: string; //"BTCUSDT",  // long/short account num ratio of all traders
+    longShortRatio:string; //"0.1960",  //long account num ratio of all traders
+    longAccount: string; //"0.6622",   // short account num ratio of all traders
+    shortAccount:string; //"0.3378", 
+    timestamp:string; //"1583139600000"
 }

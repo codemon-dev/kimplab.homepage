@@ -200,4 +200,15 @@ export interface ICurrencyWeebullResponse {
     close: string;
     tradeTime: string;
     timeZone: string;
-  }
+}
+
+
+export interface ILongShortRatio
+{ 
+    symbol: string;
+    coinPair: string;
+    marketInfo: IMarketInfo;
+    long: number;
+    short: number;
+    timestamp: number;
+}

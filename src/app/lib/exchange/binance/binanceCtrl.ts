@@ -1,10 +1,9 @@
 "use client"
 
-import { v4 as uuidv4 } from "uuid";
 import { ASK_BID, EXCHANGE, FETCH_METHOD, MARKET, MARKET_CURRENCY, MARKET_TYPE } from "@/config/enum";
-import { BINANCE_ENDPOINT, BinanceSocketPayload, IBinanceAggTrade, IBinanceBookTickerResponse, IBinanceMarketPriceResponse, IBinanceTickerResponse, IBinanceWSMarketPriceResponse, IBinanceWSTickerResponse } from "./IBinance";
+import { BINANCE_ENDPOINT, IBinanceSocketPayload, IBinanceAggTrade, IBinanceBookTickerResponse, IBinanceMarketPriceResponse, IBinanceTickerResponse, IBinanceWSMarketPriceResponse, IBinanceWSTickerResponse, IBinanceLongShortRatioResponse } from "./IBinance";
 import ReconnectingWebSocket from "reconnecting-websocket";
-import { IAggTradeInfo, IExchangeCoinInfo, IFundingFeeInfo, PriceQty } from "@/config/interface";
+import { IAggTradeInfo, IExchangeCoinInfo, IFundingFeeInfo, ILongShortRatio, PriceQty } from "@/config/interface";
 import { parseCoinInfoFromCoinPair } from "@/app/helper/cryptoHelper";
 import _ from "lodash";
 
@@ -162,7 +161,7 @@ export const binance_spot_startTickerWebsocket = async (codes: string[], options
     listener(aggTradeInfos);
 
     let ws: ReconnectingWebSocket | undefined;
-    let payload: BinanceSocketPayload = {
+    let payload: IBinanceSocketPayload = {
         id: 1,
         method: "SUBSCRIBE",
         params: [
@@ -325,7 +324,7 @@ export const binance_usd_m_future_startTickerWebsocket = async (codes: string[],
     listener(aggTradeInfos);
 
     let ws: ReconnectingWebSocket | undefined;
-    let payload: BinanceSocketPayload = {
+    let payload: IBinanceSocketPayload = {
         id: 1,
         method: "SUBSCRIBE",
         params: [
@@ -520,7 +519,7 @@ export const binance_coin_m_future_startTickerWebsocket = async (codes: string[]
     listener(aggTradeInfos);
 
     let ws: ReconnectingWebSocket | undefined;
-    let payload: BinanceSocketPayload = {
+    let payload: IBinanceSocketPayload = {
         id: 1,
         method: "SUBSCRIBE",
         params: [
@@ -674,7 +673,7 @@ export const binance_usd_m_future_startMarketPriceWebsocket = async (codes: stri
     listener(fundingFeeInfos);
 
     let ws: ReconnectingWebSocket | undefined;
-    let payload: BinanceSocketPayload = {
+    let payload: IBinanceSocketPayload = {
         id: 1,
         method: "SUBSCRIBE",
         params: [
@@ -788,7 +787,7 @@ export const binance_coin_m_future_startMarketPriceWebsocket = async (codes: str
     listener(fundingFeeInfos);
 
     let ws: ReconnectingWebSocket | undefined;
-    let payload: BinanceSocketPayload = {
+    let payload: IBinanceSocketPayload = {
         id: 1,
         method: "SUBSCRIBE",
         params: [
@@ -868,4 +867,31 @@ export const binance_usd_m_future_startOrderWebsocket = async (codes: string[], 
 
 export const binance_coin_m_future_startOrderWebsocket = async (codes: string[], options: any, listener: any) => {
 
+}
+
+export const binance_usd_m_future_globalLongShortRatio = async (_coinPair: string) => {
+    const response = await fetch(`${BINANCE_ENDPOINT.API_COIN_M_FUTURE_GLOBAL_LONG_SHORT_RATIO}/?symbol=${_coinPair}&period=15m&limit=1`, {method: FETCH_METHOD.GET, headers: header, body: null});
+    if (!response) return null;
+    if (response.status !== 200) {
+        console.log("[BINANCE] binance_coin_m_future_globalLongShortRatio response error: ", response);
+        return null;
+    }
+    let jsonData = null;
+    try {
+        jsonData = await response.json();
+    } catch (err: any) {
+        console.log("err: ", err)
+    }
+    if ((jsonData as IBinanceLongShortRatioResponse[]).length === 0) return null;
+    let resData: IBinanceLongShortRatioResponse = jsonData[0]
+    const {symbol, coinPair, market, marketCurrency} = parseCoinInfoFromCoinPair(EXCHANGE.BINANCE, MARKET_TYPE.USD_M_FUTURE_PERF, resData.symbol)        
+    let longShorRatio: ILongShortRatio = {
+        symbol: symbol,
+        coinPair: coinPair,
+        marketInfo: {exchange: EXCHANGE.BINANCE, market: market as MARKET, marketType: MARKET_TYPE.USD_M_FUTURE_PERF, marketCurrency: marketCurrency as MARKET_CURRENCY},            
+        long: parseFloat(resData.longAccount),
+        short: parseFloat(resData.shortAccount),
+        timestamp: parseInt(resData.timestamp),
+    }
+    return longShorRatio;
 }

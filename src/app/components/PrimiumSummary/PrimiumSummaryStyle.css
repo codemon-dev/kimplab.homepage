@@ -1,11 +1,17 @@
+
+.exchange-column {
+  min-width: 120px;
+}
+
 .price-column {
-  min-width: 150px
+  width: 100px;
 }
 
 .price-rate-column {
-  min-width: 120px
+  width: 80px;
 }
 
 .ant-table-title {
-  padding: 0
+  padding: 0 !important;
+  border-radius: 0 !important;
 }

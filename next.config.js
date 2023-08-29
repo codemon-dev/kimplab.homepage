@@ -55,6 +55,10 @@ const rewrites = async () => {
             destination: "https://dapi.binance.com/dapi/v1/premiumIndex"
         },
         {
+            source: "/binance_coin_m_future_global_long_short_ratio/:path*",
+            destination: 'https://fapi.binance.com/futures/data/globalLongShortAccountRatio/:path*'
+        },
+        {
             source: "/currency_dunamu",
             destination: 'http://quotation-api-cdn.dunamu.com/v1/forex/recent?codes=FRX.KRWUSD'
         },
@@ -69,7 +73,7 @@ const rewrites = async () => {
         {
             source: "/currency_weebull",
             destination: 'https://quotes-gw.webullfintech.com/api/stock/tickerRealTime/getQuote?tickerId=913344371&includeSecu=1&includeQuote=1&more=1'
-        },
+        }
     ];
 };
 
