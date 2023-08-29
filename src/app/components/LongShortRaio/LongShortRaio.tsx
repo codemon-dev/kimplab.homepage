@@ -56,7 +56,7 @@ export const LongShortRaio = () => {
     }, [])
 
     return (
-        <Card title="선물 LONG / SHORT 비율 (Binance USDⓈ-M Futures) " extra={<a href="#">More</a>} style={{flex: 1, display: "flex", flexDirection: "column", width: "100%", height: "100%", margin: 0, padding: 0}}>
+        <Card bordered={false} title="선물 LONG / SHORT 비율 (Binance USDⓈ-M Futures) " extra={<a href="#">More</a>} style={{flex: 1, display: "flex", flexDirection: "column", width: "100%", height: "100%", margin: 0, padding: 0}}>
             <div style={{flex: 1, display: "flex", flexDirection: "column", alignItems: "space-around", justifyContent: "space-around"}}>
                 {longShortRatioList}
             </div>
