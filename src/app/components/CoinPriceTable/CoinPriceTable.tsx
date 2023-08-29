@@ -58,8 +58,8 @@ interface DataType {
 
 const defaultAdvancedRealTimeChartProps: AdvancedRealTimeChartProps = {
     autosize: true,
-    //symbol: "UPBIT:BTCKRW",
-    symbol: "NONE",
+    symbol: "UPBIT:BTCKRW",
+    // symbol: "NONE",
     interval: "240",
     // timezone?: Timezone;
     theme: "light",
@@ -577,7 +577,7 @@ const CoinPriceTable: React.FC = () => {
 
   const onRowClicked = (event: any) => {
     console.log("onRowClicked. event: ", event)
-    changeTradingView(event.data.exchange, event.data.symbol, event.data.market)
+    changeTradingView(event.data.exchange, event.data.symbol, event.data.marketInfo.marketCurrency)
   }
 
   const handleExchangeChange = (exchange: EXCHANGE) => {
@@ -599,7 +599,7 @@ const CoinPriceTable: React.FC = () => {
       marketInfo: getMarketInfo(selectedRef.current.exchange, market),
     }
     setSelectedRowData();
-    changeTradingView(selectedRef.current.exchange, getFirstSymbolFromExchange(selectedRef.current.exchange, selectedRef.current.marketInfo.market), selectedRef.current.marketInfo.market)
+    changeTradingView(selectedRef.current.exchange, getFirstSymbolFromExchange(selectedRef.current.exchange, selectedRef.current.marketInfo.market), selectedRef.current.marketInfo.marketCurrency)
     setSelectedMarket(selectedRef.current.marketInfo)
   };
 
