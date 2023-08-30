@@ -57,3 +57,52 @@ export const getEmptyAggTradeInfo = (exchange?: EXCHANGE) => {
     }
     return aggTradeInfo;
 }
+
+export const convertKoreanCurrency = (price: number, postfix: string = "원") => {
+    const units = ["천", "만", "억", "조", "경"];
+    const unitSize = 4; // 한자리 단위 크기
+    const maxUnitIndex = units.length - 1;
+    //const delimiter = ",";
+    const delimiter = "";
+
+    if (isNaN(price)) {
+        return "유효하지 않은 숫자입니다.";
+    }
+
+    let formatted = String(price).replace(/[^0-9.]/g, ''); // 숫자와 소수점만 남기기
+    const parts = formatted.split('.');
+    let integerPart = parts[0];
+    let decimalPart = parts[1] || '';
+
+    let result = "";
+    let currentIndex = 0;
+    
+    while (integerPart.length > 0) {
+        const chunk = integerPart.slice(-unitSize);
+        integerPart = integerPart.slice(0, -unitSize);
+
+        if (chunk !== "0000") {
+            if (result !== "") {
+                result = delimiter + result;
+            }
+            
+            if (chunk.length === 4) {
+                const trimmedChunk = chunk[0] === "0" ? chunk.slice(1) : chunk;
+                result = trimmedChunk + units[currentIndex] + result;
+            } else {
+                result = chunk + units[currentIndex] + result;
+            }
+        }
+
+        currentIndex++;
+        if (currentIndex > maxUnitIndex) {
+            currentIndex = 0;
+        }
+    }
+
+    if (decimalPart.length > 0) {
+        result += "." + decimalPart;
+    }
+
+    return result + postfix;
+}

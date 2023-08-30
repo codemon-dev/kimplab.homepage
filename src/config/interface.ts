@@ -212,3 +212,32 @@ export interface ILongShortRatio
     short: number;
     timestamp: number;
 }
+
+export interface IDominance {
+    dominance: number,
+    timestamp: number
+}
+
+export interface IDominanceChartInfo {
+    chart: IDominance[]
+    curDominance: number,
+    timestamp: number,
+} 
+
+export interface IMarketcapInfo {
+    rank: number;
+    symbol: string;
+    koreanName: string;
+    englishName: string;
+    currencyType: MARKET_CURRENCY;
+    marketCap: number;
+    price: number;
+    accTradePrice24h: number;
+    signedChangeRate1h: number;
+    signedChangeRate24h: number;
+    availableVolume: number;
+    maxSupply: number | null;
+    circulatingSupply: number | null;
+    totalSupply: number | null;
+    timestamp: number;
+}

@@ -1,7 +1,7 @@
 // GlobalStore.tsx (note the .tsx extension for TypeScript files)
 import { createContext } from 'react';
 import { ACTIONS } from './actions';
-import { IAggTradeInfo, ICurrencyInfo, ICurrencyInfos, IExchangeCoinInfo, IImgInfo, IOrderBook } from '@/config/interface';
+import { IAggTradeInfo, ICurrencyInfo, ICurrencyInfos, IDominanceChartInfo, IExchangeCoinInfo, IImgInfo, IMarketcapInfo, IOrderBook } from '@/config/interface';
 import { CURRENCY_SITE_TYPE, EXCHANGE, IMG_TYPE, MARKET } from '@/config/enum';
 import _ from 'lodash'
 
@@ -19,6 +19,8 @@ export type GlobalStoreState = {
   bybitTradeWsInfoMap: Map<MARKET, Map<string, IAggTradeInfo>>;
   bybitOrderBookWsInfoMap: Map<MARKET, Map<string, IOrderBook>>;
   currencyInfos: Map<CURRENCY_SITE_TYPE, ICurrencyInfo>;
+  dominanceInfo: IDominanceChartInfo,
+  marketCapInfos: IMarketcapInfo[],
 };
 
 type GlobalStoreType = {
@@ -47,6 +49,8 @@ export const initialState: GlobalStoreState = {
   bybitTradeWsInfoMap: new Map<MARKET, Map<string, IAggTradeInfo>>(),
   bybitOrderBookWsInfoMap: new Map<MARKET, Map<string, IOrderBook>>(),
   currencyInfos: new Map<CURRENCY_SITE_TYPE, ICurrencyInfo>(),
+  dominanceInfo: {chart: [], curDominance: 0, timestamp: 0},
+  marketCapInfos: [],
 };
 
 // Create the reducer function with the types
@@ -56,8 +60,23 @@ export const reducer = (state: GlobalStoreState, action: Action): GlobalStoreSta
       if (!action.value || action.value.length === 0) {
         break;
       }
-      state.currencyInfos = _.cloneDeep(action.value)
+      state = { ...state, currencyInfos: _.cloneDeep(action.value) }
       break;
+
+    case ACTIONS.UPDATE_DOMINANCE_INFO:
+      if (!action.value) {
+        break;
+      }
+      state = { ...state, dominanceInfo: _.cloneDeep(action.value) }
+      break;
+
+    case ACTIONS.UPDATE_MARKETCAP_INFO:
+      if (!action.value) {
+        break;
+      }
+      state = { ...state, marketCapInfos: _.cloneDeep(action.value) }
+      break;      
+
     case ACTIONS.ADD_IMG_INFO:
       if (!action.value || action.value.length === 0 || !action.key) {
         break;
@@ -72,12 +91,14 @@ export const reducer = (state: GlobalStoreState, action: Action): GlobalStoreSta
         }
       })
       break;
+
     case ACTIONS.UPDATE_EXCHANGE_COIN_INFO:
       if (!action.value || action.value.length === 0) {
         break;
       }
-      state.exchangeConinInfos = _.cloneDeep(action.value)
+      state = { ...state, exchangeConinInfos: _.cloneDeep(action.value) }
       break;
+
     case ACTIONS.UPDATE_TRADE_WS_INFO:
       if (!action.value || action.value.length === 0 || !action.key) {
         break;
@@ -93,6 +114,7 @@ export const reducer = (state: GlobalStoreState, action: Action): GlobalStoreSta
         state.bybitTradeWsInfoMap.get(tradeInfo.marketInfo.market)?.set(tradeInfo.coinPair, tradeInfo);
       }
       break;
+
     case ACTIONS.UPDATE_ORDERBOOK_WS_INFO:
       if (!action.value || action.value.length === 0 || !action.key) {
         break;
@@ -108,6 +130,7 @@ export const reducer = (state: GlobalStoreState, action: Action): GlobalStoreSta
         state.bybitOrderBookWsInfoMap.get(orderbook.marketInfo.market)?.set(orderbook.coinPair, orderbook);
       }
       break;
+
     default:
       break;
   }

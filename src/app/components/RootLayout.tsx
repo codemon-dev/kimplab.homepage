@@ -14,13 +14,11 @@ export default function RootLayout({ children }: PropsWithChildren) {
   const [mssageApi, contextHolder] = message.useMessage();
   return (
     <div>
-      <Layout className="layout" style={{ minHeight: "100vh", minWidth: "100vw"}}>
+      <Layout className="layout">
         {contextHolder}
         <HeaderComp />                
-        <Content style={{ padding: '0px 20px', paddingTop: "20px", display: "flex", flexDirection:'column', flex: 1}}>
-          <div className="site-layout-content" style={{display: "flex", flex: 1, width: "100%", height: "100%"}}>
-            {children}
-          </div>
+        <Content style={{minHeight: 'calc(100vh - 210px)', width: "100%"}}>
+          {children}
         </Content>
         <FooterComp />
       </Layout>

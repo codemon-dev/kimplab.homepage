@@ -96,7 +96,7 @@ const CoinPriceTable: React.FC = () => {
   const [filterOption, setFilterOption] = useState<{value: string, lable: string}[]>(filterOptionRef.current)
   
   const columnDefs: any = [
-    { headerName: '이름', field: 'symbol', minWidth: 160, cellRenderer: CoinTitle, filter: true, suppressMenu: true, filterParams: { maxNumConditions: 50, readOnly: true }},
+    { headerName: '이름', field: 'symbol', minWidth: 160, cellRenderer: CoinTitle, filter: true, suppressMenu: true, filterParams: { maxNumConditions: 25, readOnly: true }},
     { headerName: '현재가격', field: 'price', minWidth: 120, headerClass: 'ag-header-right', cellRenderer: PriceComp },
     { headerName: '가격변동', field: 'changeRate', minWidth: 100, headerClass: 'ag-header-right', cellRenderer: PriceChangeComp},    
     { headerName: '최고/최저', field: 'highLowPrice', minWidth: 150, headerClass: 'ag-header-right', cellRenderer: HighLowPriceComp},    
@@ -609,53 +609,51 @@ const CoinPriceTable: React.FC = () => {
 
   // return <></>
 
-  return (    
-    <div style={{display: "flex", flexDirection: "column", flex: 1, height: "100%", width: "100%", alignItems: "center"}}>
-      <Row style={{flex: 1, height: "100%", width: "100%"}}>
-        <Col span={14} style={{padding: 5}}>
-          <div style={{width: "100%", height: "50%"}}>
-            <AdvancedRealTimeChart
-              symbol={advancedRealTimeChartProps.symbol}
-              autosize={advancedRealTimeChartProps.autosize} 
-              interval={advancedRealTimeChartProps.interval}
-              theme={advancedRealTimeChartProps.theme} 
-              locale={advancedRealTimeChartProps.locale}
-              enable_publishing={advancedRealTimeChartProps.enable_publishing}
-              allow_symbol_change={advancedRealTimeChartProps.allow_symbol_change}
-              save_image={advancedRealTimeChartProps.save_image}
-              show_popup_button={advancedRealTimeChartProps.show_popup_button}
-            />
-          </div>
-        </Col>    
-        <Col span={10} style={{padding: 5}} className="ag-theme-alpine">
-          <div style={{display: 'flex', flexDirection: "row", width: "100%", height: "50px", backgroundColor: "#192331", margin:0, padding: "0px 16px", justifyContent: "space-between", alignItems: "center"}}>
-            <Select
-              tagRender={CustomTag}
-              mode="tags"
-              style={{ backgroundColor: "transparent", margin: "0px 5px", padding: 0, flex: 1}}
-              placeholder="필터"
-              bordered={true}
-              onChange={onFilterTagChanged}
-              className="table-select"
-              suffixIcon={<SearchOutlined style={{fontSize: "20px"}}/>}
-              options={filterOption}
-            />              
-            <Select
-              style={{ width: 180, margin: "0px 5px" }}
-              value={selectedExchange}
-              bordered={true}
-              onChange={handleExchangeChange}
-              options={exchangeList}
-            />
-            <Select
-              style={{ width: 180, margin: "0px 5px" }}
-              value={selectedMarket.market}
-              bordered={true}
-              onChange={handleMarketChange}
-              options={marketOptions}
-            />
-            <Button shape="circle" style={{backgroundColor: 'whitesmoke', margin: "0px 5px"}} icon={<SettingOutlined style={{color: "#192331", fontSize: "20px"}}/>} />
-          </div>
+  return (
+    <div style={{display: "flex", flex: 1, width: "100%", height: "100%", margin: 0, padding: 0}}>
+      <div style={{flex: 1, height: "500px"}}>
+        <AdvancedRealTimeChart
+          symbol={advancedRealTimeChartProps.symbol}
+          autosize={advancedRealTimeChartProps.autosize} 
+          interval={advancedRealTimeChartProps.interval}
+          theme={advancedRealTimeChartProps.theme} 
+          locale={advancedRealTimeChartProps.locale}
+          enable_publishing={advancedRealTimeChartProps.enable_publishing}
+          allow_symbol_change={advancedRealTimeChartProps.allow_symbol_change}
+          save_image={advancedRealTimeChartProps.save_image}
+          show_popup_button={advancedRealTimeChartProps.show_popup_button}
+        />
+      </div>
+      <div style={{display: "flex", flexDirection: "column", width: "800px", height: "100%", paddingLeft: "8px"}} className="ag-theme-alpine">
+        <div style={{display: 'flex', flexDirection: "row", width: "100%", height: "50px", backgroundColor: "#192331", margin:0, padding: "0px 16px", justifyContent: "space-between", alignItems: "center"}}>
+          <Select
+            tagRender={CustomTag}
+            mode="tags"
+            style={{ backgroundColor: "transparent", margin: "0px 5px", padding: 0, flex: 1}}
+            placeholder="필터"
+            bordered={true}
+            onChange={onFilterTagChanged}
+            className="table-select"
+            suffixIcon={<SearchOutlined style={{fontSize: "20px"}}/>}
+            options={filterOption}
+          />              
+          <Select
+            style={{ width: 180, margin: "0px 5px" }}
+            value={selectedExchange}
+            bordered={true}
+            onChange={handleExchangeChange}
+            options={exchangeList}
+          />
+          <Select
+            style={{ width: 180, margin: "0px 5px" }}
+            value={selectedMarket.market}
+            bordered={true}
+            onChange={handleMarketChange}
+            options={marketOptions}
+          />
+          <Button shape="circle" style={{backgroundColor: 'whitesmoke', margin: "0px 5px"}} icon={<SettingOutlined style={{color: "#192331", fontSize: "20px"}}/>} />
+        </div>
+        <div style={{flex: 1, margin: 0, padding: 0, width: "100%", height: "100%"}}>
           <AgGridReact
               ref={gridRef}
               rowData={rowData}
@@ -670,9 +668,70 @@ const CoinPriceTable: React.FC = () => {
               loadingOverlayComponent={LoadingComp}
               onRowClicked={onRowClicked}
           />
-        </Col>
-      </Row>
+        </div>
+      </div>
     </div>
+    // <Row style={{width: "100%", height: "100%", backgroundColor: "red"}}>
+    //   <Col span={14} style={{padding: 5}}>
+    //     <div style={{width: "100%", height: "50%"}}>
+    //       <AdvancedRealTimeChart
+    //         symbol={advancedRealTimeChartProps.symbol}
+    //         autosize={advancedRealTimeChartProps.autosize} 
+    //         interval={advancedRealTimeChartProps.interval}
+    //         theme={advancedRealTimeChartProps.theme} 
+    //         locale={advancedRealTimeChartProps.locale}
+    //         enable_publishing={advancedRealTimeChartProps.enable_publishing}
+    //         allow_symbol_change={advancedRealTimeChartProps.allow_symbol_change}
+    //         save_image={advancedRealTimeChartProps.save_image}
+    //         show_popup_button={advancedRealTimeChartProps.show_popup_button}
+    //       />
+    //     </div>
+    //   </Col>    
+    //   <Col span={10} style={{height: "100%"}} className="ag-theme-alpine">
+    //     <div style={{display: 'flex', flexDirection: "row", width: "100%", height: "50px", backgroundColor: "#192331", margin:0, padding: "0px 16px", justifyContent: "space-between", alignItems: "center"}}>
+    //       <Select
+    //         tagRender={CustomTag}
+    //         mode="tags"
+    //         style={{ backgroundColor: "transparent", margin: "0px 5px", padding: 0, flex: 1}}
+    //         placeholder="필터"
+    //         bordered={true}
+    //         onChange={onFilterTagChanged}
+    //         className="table-select"
+    //         suffixIcon={<SearchOutlined style={{fontSize: "20px"}}/>}
+    //         options={filterOption}
+    //       />              
+    //       <Select
+    //         style={{ width: 180, margin: "0px 5px" }}
+    //         value={selectedExchange}
+    //         bordered={true}
+    //         onChange={handleExchangeChange}
+    //         options={exchangeList}
+    //       />
+    //       <Select
+    //         style={{ width: 180, margin: "0px 5px" }}
+    //         value={selectedMarket.market}
+    //         bordered={true}
+    //         onChange={handleMarketChange}
+    //         options={marketOptions}
+    //       />
+    //       <Button shape="circle" style={{backgroundColor: 'whitesmoke', margin: "0px 5px"}} icon={<SettingOutlined style={{color: "#192331", fontSize: "20px"}}/>} />
+    //     </div>
+    //     <AgGridReact
+    //         ref={gridRef}
+    //         rowData={rowData}
+    //         columnDefs={columnDefs}
+    //         defaultColDef={{ sortable: true, resizable: false}}
+    //         cacheQuickFilter={true}
+    //         onGridReady={onGridReady}
+    //         getRowId={getRowId}
+    //         rowHeight={50}
+    //         rowBuffer={50}
+    //         className='myGrid'
+    //         loadingOverlayComponent={LoadingComp}
+    //         onRowClicked={onRowClicked}
+    //     />
+    //   </Col>
+    // </Row>
   );
 };
 

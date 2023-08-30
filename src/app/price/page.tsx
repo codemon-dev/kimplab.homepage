@@ -1,13 +1,10 @@
 import React from 'react';
-import { Row } from 'antd';
 import CoinPriceTable from '../components/CoinPriceTable/CoinPriceTable';
 
-export default function Bot() {
+export default function Price() {
   return  (
-    <div style={{flex: 1}}>
-      <Row justify="center" align="middle" style={{flex: 1, height: "100%", width: "100%"}}>
-        <CoinPriceTable />
-      </Row>
+    <div style={{display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start", height: 'calc(100vh - 210px)', width: "100%", margin: 0, padding: "8px"}}>
+      <CoinPriceTable />
     </div>
   )
 }

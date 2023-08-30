@@ -5,15 +5,14 @@ import { Avatar, Row, Col, Typography, Table } from 'antd';
 import { ColumnsType } from 'antd/es/table';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import './PrimiumSummaryStyle.css'
-import ExchangeTitle from '../ExchangeTitle';
-import { MiniChart } from '../TradingViewWidget/MiniChart';
-import './PrimiumSummaryStyle.css'
 import { IAggTradeInfo } from '@/config/interface';
 import { useGlobalStore } from '@/app/hook/useGlobalStore';
 import { calculatePrimium } from '@/app/lib/tradeHelper';
 import PriceComp from './PriceComp';
 import { PrimiumComp } from './PrimiumComp';
 import PriceChangeComp from './PriceChangeComp';
+import ExchangeTitle from '@/app/components/ExchangeTitle';
+import MiniChart from '@/app/components/TradingViewWidget/MiniChart';
 
 interface DataType {
     key: string;
@@ -170,13 +169,13 @@ export const TabContents = ({symbol, exchange, aggTradeInfos}: IPrimiumTabConten
                     <MiniChart exchange={selExchange} coinPair={coinPair}/>
                 }</div>
             )}
-            // onRow={(record, rowIndex) => {
-            //     return {onClick: (event) => {
-            //             console.log(record.key);
-            //             setSelExchange(record.key as EXCHANGE);
-            //         }
-            //     };
-            // }}
+            onRow={(record, rowIndex) => {
+                return {onClick: (event) => {
+                        console.log(record.key);
+                        setSelExchange(record.key as EXCHANGE);
+                    }
+                };
+            }}
         />
     );
 };

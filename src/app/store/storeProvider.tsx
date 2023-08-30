@@ -1,17 +1,20 @@
-import { coindex_getAllCoins } from "../lib/crypto3partyAPI/coindex/coindex";
+import { coindex_getAllCoins, coindex_getDominance } from "../lib/crypto3partyAPI/coindex/coindex";
 import { ACTIONS } from "./actions";
 import { GlobalStoreContext, initialState, reducer } from "./store";
 import { useReducer, useEffect, useState, useRef } from 'react'
 import { IMG_TYPE } from "./../../config/enum"
-import { ICurrencyInfos, IImgInfo } from "@/config/interface";
+import { ICurrencyInfos, IDominanceChartInfo, IImgInfo, IMarketcapInfo } from "@/config/interface";
 import { Spin } from "antd";
 import useExchange from "../hook/useExchange";
 import useCurrency from "../hook/useCurrency";
+import useDominance from "../hook/useDominance";
+import { getAllMarketcap } from "../lib/exchange/upbit/upbitCtrl";
 
 // Create the provider component with types
 export function GlobalStoreProvider({children}: any) {
     const { getInitialInfo } = useExchange()
-    const { addListener, removeListener, start, stop } = useCurrency()
+    const { currency_addListener, currency_removeListener, currency_start, currency_stop } = useCurrency()
+    const { dominance_addListener, dominance_removeListener, dominance_start, dominance_stop } = useDominance()
     const [state, dispatch] = useReducer(reducer, initialState);
     const isMount = useRef(false);
     const [isInitDone, setIsInitDone] = useState(false)
@@ -25,29 +28,47 @@ export function GlobalStoreProvider({children}: any) {
         initialize();
         return () => {
             isMount.current = false;
-            stop();
-            removeListener("storeProvider");
+            currency_stop();
+            currency_removeListener("storeProvider");
+            dominance_stop();
+            dominance_removeListener("storeProvider");
         }
     }, [])
 
     const initialize = async () => {
         let promises: any = []
+        initDominanceInfoMonitor();
         initCurrencyInfoMonitor();
-        promises.push(createImgInfoMap())
         promises.push(getInitialInfo())
+        promises.push(createImgInfoMap())
+        promises.push(fetchMarketCapInfo())
         const promiseRet = await Promise.all(promises);
-        if (promiseRet[1]) {
-            dispatch({ type: ACTIONS.UPDATE_EXCHANGE_COIN_INFO, value: promiseRet[1]})
+        if (promiseRet[0]) {
+            dispatch({ type: ACTIONS.UPDATE_EXCHANGE_COIN_INFO, value: promiseRet[0]})
         }
         setIsInitDone(true);
     }
 
+    const initDominanceInfoMonitor = async () => {
+        dominance_addListener("storeProvider", (dominanceInfo: IDominanceChartInfo) => {
+            // console.log("dominanceInfo: ", dominanceInfo);
+            dispatch({ type: ACTIONS.UPDATE_DOMINANCE_INFO, value: dominanceInfo})
+        })
+        dominance_start();
+    }
+
     const initCurrencyInfoMonitor = async () => {
-        addListener("storeProvider", (currencyInfos: ICurrencyInfos) => {
+        currency_addListener("storeProvider", (currencyInfos: ICurrencyInfos) => {
             // console.log("currencyInfos: ", currencyInfos);
             dispatch({ type: ACTIONS.UPDATE_CURRENCY_INFO, value: currencyInfos})
         })
-        start();
+        currency_start();
+    }
+
+    const fetchMarketCapInfo = async () => {
+        const marketCapInfos = await getAllMarketcap()
+        if (!marketCapInfos) return;
+        dispatch({ type: ACTIONS.UPDATE_MARKETCAP_INFO, value: marketCapInfos})
     }
 
     const createImgInfoMap = async () => {

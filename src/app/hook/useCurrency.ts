@@ -11,12 +11,12 @@ function useCurrency() {
   let currencyInfos: Map<CURRENCY_SITE_TYPE, ICurrencyInfo> = new Map<CURRENCY_SITE_TYPE, ICurrencyInfo>();
   let firstCallback: boolean = false;
 
-  const addListener = (key: string, callback: any) => {
+  const currency_addListener = (key: string, callback: any) => {
     listenerMap.set(key, callback);
     notifyCurrency();
   }
 
-  const removeListener = (key: string) => {
+  const currency_removeListener = (key: string) => {
     listenerMap.delete(key);
   }
 
@@ -32,7 +32,7 @@ function useCurrency() {
     });
   }
 
-  const start = async () => {
+  const currency_start = async () => {
     if (monitorInterval != null) {
         console.log('CurrencyHandler monitor alread started. skip start.');
         return;
@@ -44,7 +44,7 @@ function useCurrency() {
     }, 10 * 1000);
   };
 
-  const stop = () => {
+  const currency_stop = () => {
     console.log('CurrencyInfo monitor stop');
     if (monitorInterval != null) {
         clearInterval(monitorInterval);
@@ -243,10 +243,10 @@ function useCurrency() {
   }
 
   return {
-    addListener,
-    removeListener,
-    start,
-    stop,
+    currency_addListener,
+    currency_removeListener,
+    currency_start,
+    currency_stop,
   }
 }
 

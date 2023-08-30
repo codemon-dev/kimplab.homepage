@@ -4,7 +4,8 @@
 //export const UPBIT_API_URL = "https://api.upbit.com/"
 export enum UPBIT_ENDPOINT {
   //API_MARKET_ALL = "https://api.upbit.com/v1/market/all?isDetails=true"
-  API_MARKET_ALL = "/upbit_market_all"
+  API_MARKET_ALL = "/upbit_market_all",
+  API_MARKETCAP = "/upbit_marketcap",
 }
 
 export interface UPBIT_PONG_RESPONSE {
@@ -211,4 +212,24 @@ export interface IUpbitOrderResponse {
       side: string; //"ask"
     }
   ]
+}
+
+export interface IUpbitMarketcapResponse {
+  code: string; //"CRIX.MARKETCAP.KRW-CARDANO",
+  koreanName: string; //"에이다",
+  englishName: string;  //"Ada",
+  symbol: string; //"ADA",
+  currencyCode: string; //"KRW",
+  price: number;  //352.90365969,
+  marketCap: number;  //12375696232688.60000000,
+  accTradePrice24h: number; //467610716774.74730000,
+  signedChangeRate1h: number; //0,
+  signedChangeRate24h: number;  //0,
+  availableVolume: number;  //35068200323.27600000,
+  maxSupply: number | null;  //45000000000.00000000,
+  circulatingSupply: number | null;  //35068200323.27600000,
+  totalSupply: number | null;  //36122629654.09600000,
+  provider: string; //"CoinMarketCap",
+  lastUpdated: string;  //"2023-08-30T14:53:51+09:00",
+  timestamp: number;  //1693374950013
 }

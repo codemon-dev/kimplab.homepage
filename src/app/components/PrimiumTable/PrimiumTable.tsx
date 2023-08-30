@@ -98,7 +98,7 @@ const PrimiumTable: React.FC = () => {
   const isLoadingRef = useRef(true);
   
   const columnDefs: any = [
-    { headerName: '이름', field: 'symbol', minWidth: 160, cellRenderer: CoinTitle, filter: true, suppressMenu: true, filterParams: { maxNumConditions: 50, readOnly: true }},
+    { headerName: '이름', field: 'symbol', minWidth: 160, cellRenderer: CoinTitle, filter: true, suppressMenu: true, filterParams: { maxNumConditions: 25, readOnly: true }},
     { headerName: '현재가격A', field: 'price_1', minWidth: 110, headerClass: 'ag-header-right', cellRenderer: PriceComp_1},
     { headerName: '현재가격B', field: 'price_2', minWidth: 110, headerClass: 'ag-header-right', cellRenderer: PriceComp_2},
     { headerName: '프리미엄', field: 'primium', minWidth: 90, headerClass: 'ag-header-right', cellRenderer: PrimiumComp},    
@@ -673,60 +673,58 @@ const PrimiumTable: React.FC = () => {
   }
 
   return (    
-    <div style={{display: "flex", flexDirection: "column", flex: 1, height: "100%", width: "100%", alignItems: "center"}}>
-      <Row style={{flex: 1, height: "100%", width: "100%"}}>
-        <Col span={14} style={{padding: 5}}>
-          <div style={{width: "100%", height: "50%"}}>
-            <AdvancedRealTimeChart
-              symbol={advancedRealTimeChartProps.symbol}
-              autosize={advancedRealTimeChartProps.autosize} 
-              interval={advancedRealTimeChartProps.interval}
-              theme={advancedRealTimeChartProps.theme} 
-              locale={advancedRealTimeChartProps.locale}
-              enable_publishing={advancedRealTimeChartProps.enable_publishing}
-              allow_symbol_change={advancedRealTimeChartProps.allow_symbol_change}
-              save_image={advancedRealTimeChartProps.save_image}
-              show_popup_button={advancedRealTimeChartProps.show_popup_button}
-            />
-          </div>
-        </Col>    
-        <Col span={10} style={{padding: 5}} className="ag-theme-alpine">
-          <div style={{display: 'flex', flexDirection: "row", width: "100%", height: "50px", backgroundColor: "#192331", margin:0, padding: "0px 16px", justifyContent: "space-between", alignItems: "center"}}>
-            <Select
-              tagRender={CustomTag}
-              mode="tags"
-              style={{ backgroundColor: "transparent", margin: "0px 5px", padding: 0, flex: 1}}
-              placeholder="필터"
-              bordered={true}
-              onChange={onFilterTagChanged}
-              className="table-select"
-              suffixIcon={<SearchOutlined style={{fontSize: "20px"}}/>}
-              options={filterOption}
-            />      
-            <TreeSelect
-              // showSearch
-              style={{ width: 160, margin: "0px 5px" }}
-              value={selectedRef_1.current.menuItem}
-              dropdownStyle={{ maxHeight: 400, minWidth: 200, overflow: 'auto' }}
-              placeholder="마켓_1"
-              treeDefaultExpandAll
-              popupMatchSelectWidth={false}
-              onChange={handleMarketChange_1}
-              treeData={marketOptions_1}
-            />
-            <TreeSelect
-              // showSearch
-              style={{ width: 160, margin: "0px 5px" }}
-              value={selectedRef_2.current.menuItem}
-              dropdownStyle={{ maxHeight: 400, minWidth: 200, overflow: 'auto' }}
-              placeholder="마켓_2"
-              treeDefaultExpandAll
-              popupMatchSelectWidth={false}
-              onChange={handleMarketChange_2}
-              treeData={marketOptions_2}
-            />
-            <Button shape="circle" style={{backgroundColor: 'whitesmoke', margin: "0px 5px"}} icon={<SettingOutlined style={{color: "#192331", fontSize: "20px"}}/>} />
-          </div>
+    <div style={{display: "flex", flex: 1, width: "100%", height: "100%", margin: 0, padding: 0}}>
+      <div style={{flex: 1, height: "500px"}}>
+        <AdvancedRealTimeChart
+          symbol={advancedRealTimeChartProps.symbol}
+          autosize={advancedRealTimeChartProps.autosize} 
+          interval={advancedRealTimeChartProps.interval}
+          theme={advancedRealTimeChartProps.theme} 
+          locale={advancedRealTimeChartProps.locale}
+          enable_publishing={advancedRealTimeChartProps.enable_publishing}
+          allow_symbol_change={advancedRealTimeChartProps.allow_symbol_change}
+          save_image={advancedRealTimeChartProps.save_image}
+          show_popup_button={advancedRealTimeChartProps.show_popup_button}
+        />
+      </div>
+      <div style={{display: "flex", flexDirection: "column", width: "800px", height: "100%", paddingLeft: "8px"}} className="ag-theme-alpine">
+        <div style={{display: 'flex', flexDirection: "row", width: "100%", height: "50px", backgroundColor: "#192331", margin:0, padding: "0px 16px", justifyContent: "space-between", alignItems: "center"}}>
+          <Select
+            tagRender={CustomTag}
+            mode="tags"
+            style={{ backgroundColor: "transparent", margin: "0px 5px", padding: 0, flex: 1}}
+            placeholder="필터"
+            bordered={true}
+            onChange={onFilterTagChanged}
+            className="table-select"
+            suffixIcon={<SearchOutlined style={{fontSize: "20px"}}/>}
+            options={filterOption}
+          />      
+          <TreeSelect
+            // showSearch
+            style={{ width: 160, margin: "0px 5px" }}
+            value={selectedRef_1.current.menuItem}
+            dropdownStyle={{ maxHeight: 400, minWidth: 200, overflow: 'auto' }}
+            placeholder="마켓_1"
+            treeDefaultExpandAll
+            popupMatchSelectWidth={false}
+            onChange={handleMarketChange_1}
+            treeData={marketOptions_1}
+          />
+          <TreeSelect
+            // showSearch
+            style={{ width: 160, margin: "0px 5px" }}
+            value={selectedRef_2.current.menuItem}
+            dropdownStyle={{ maxHeight: 400, minWidth: 200, overflow: 'auto' }}
+            placeholder="마켓_2"
+            treeDefaultExpandAll
+            popupMatchSelectWidth={false}
+            onChange={handleMarketChange_2}
+            treeData={marketOptions_2}
+          />
+          <Button shape="circle" style={{backgroundColor: 'whitesmoke', margin: "0px 5px"}} icon={<SettingOutlined style={{color: "#192331", fontSize: "20px"}}/>} />
+        </div>
+        <div style={{margin: 0, padding: 0, width: "100%", height: "100%"}}>
           <AgGridReact
               ref={gridRef}
               rowData={rowData}
@@ -741,8 +739,8 @@ const PrimiumTable: React.FC = () => {
               loadingOverlayComponent={LoadingComp}
               onRowClicked={onRowClicked}
           />
-        </Col>
-      </Row>
+        </div>
+      </div>
     </div>
   );
 };

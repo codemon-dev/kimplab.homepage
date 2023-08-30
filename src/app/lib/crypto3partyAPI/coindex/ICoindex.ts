@@ -1,12 +1,13 @@
 
 // export const COINDEX_API_URL = PROXY_ANYWHERE_URL + "https://coincodex.com/apps/coincodex/"
 //export const COINDEX_API_URL = "https://coincodex.com/apps/coincodex/"
-export enum COINDEX_ENDPOINT {
+export enum COINCDEX_ENDPOINT {
   //API_MARKET_ALL = "https://coincodex.com/apps/coincodex/cache/all_coins.json"
-  API_ALL_COINS = "/coindex_all_coins"
+  API_ALL_COINS = "/coindex_all_coins",
+  API_GET_COIN_CHARTS = "/coindex_get_coin_charts"
 }
 
-export interface ICoinDexAllCoins {
+export interface ICoinCodexAllCoins {
   symbol: string, //"BTC",
   display_symbol: string, //"BTC",
   name: string, //"Bitcoin",
@@ -42,7 +43,7 @@ export interface ICoinDexAllCoins {
   categories: number[]  //[1,39]
 }
 
-export interface ICoinDexAllCoinsImgPath {
+export interface ICoinCodexAllCoinsImgPath {
   symbol: string,
   imgId: string,
 }

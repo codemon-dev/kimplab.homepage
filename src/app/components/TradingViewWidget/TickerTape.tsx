@@ -48,7 +48,7 @@ export function TickerTape() {
             }
           ],
           "showSymbolLogo": true,
-          "colorTheme": ${colorTheme.current},
+          "colorTheme": "${colorTheme.current}",
           "isTransparent": false,
           "displayMode": "adaptive",
           "locale": "kr"

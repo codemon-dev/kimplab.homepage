@@ -5,8 +5,8 @@ import { v4 as uuidv4 } from "uuid";
 import crypto from 'crypto';
 import { ASK_BID, EXCHANGE, FETCH_METHOD, MARKET, MARKET_CURRENCY, MARKET_TYPE } from "@/config/enum";
 import querystring from "querystring";
-import { IAggTradeInfo, IExchangeCoinInfo, IOrderBook, PriceQty } from "@/config/interface";
-import { UPBIT_ENDPOINT, UPBIT_PONG_RESPONSE, UpbitSocketPayload, UpbitSocketSimpleResponse } from "./IUpbit";
+import { IAggTradeInfo, IExchangeCoinInfo, IMarketcapInfo, IOrderBook, PriceQty } from "@/config/interface";
+import { IUpbitMarketcapResponse, UPBIT_ENDPOINT, UPBIT_PONG_RESPONSE, UpbitSocketPayload, UpbitSocketSimpleResponse } from "./IUpbit";
 import { getMarketInfo, parseCoinInfoFromCoinPair } from "@/app/helper/cryptoHelper";
 import ReconnectingWebSocket from "reconnecting-websocket";
 
@@ -47,6 +47,39 @@ export const getInitialInfoUpbit = async () => {
         // console.log(exchangeInfos)
         return exchangeInfos;
     }
+}
+
+export const getAllMarketcap = async () => {
+    const response: any = await fetchUpbitApi(FETCH_METHOD.GET, UPBIT_ENDPOINT.API_MARKETCAP);
+    
+    // console.log("response: ", response)
+    let marketcapInfos: IMarketcapInfo[] = []
+    if (!response) {
+        return null;
+    }
+    response.forEach((obj: IUpbitMarketcapResponse, index: number) => {
+        let info: IMarketcapInfo = {
+            rank: index + 1,
+            symbol: obj.symbol,
+            koreanName: obj.koreanName,
+            englishName: obj.englishName,
+            currencyType: obj.currencyCode === "KRW"? MARKET_CURRENCY.KRW: MARKET_CURRENCY.USD,
+            marketCap: obj.marketCap,
+            price: obj.price,
+            accTradePrice24h: obj.accTradePrice24h,
+            signedChangeRate1h: obj.signedChangeRate1h,
+            signedChangeRate24h: obj.signedChangeRate24h,
+            availableVolume: obj.availableVolume,
+            maxSupply: obj.maxSupply,
+            circulatingSupply: obj.circulatingSupply,
+            totalSupply: obj.totalSupply,
+            timestamp: obj.timestamp,
+        }
+        // console.log(`symbol: ${info.symbol}, coinPair: ${info.coinPair}, market: ${info.market}`)
+        marketcapInfos.push(info);
+    });
+// console.log(exchangeInfos)
+return marketcapInfos;
 }
 
 export const urlProvider = async () => {

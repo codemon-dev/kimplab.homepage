@@ -9,15 +9,14 @@ import { TickerTape } from './TradingViewWidget/TickerTape';
 export const HeaderComp = () => {
     const pathname = usePathname();
     return (
-        <>  
+        <div style={{margin: 0, padding: 0, height: "110px"}}>  
             <div style={{backgroundColor: "#1e222d", margin: 0, padding: 0}}>
                 <TickerTape/>
             </div>
-            {/* <Header style={{ display: pathname?.includes("signin")? 'none': 'flex', alignItems: 'center' }}> */}
-            <Header style={{ display: 'flex', alignItems: 'center' }}>                
+            <Header style={{ display: 'flex', alignItems: 'center'}}>                
                 <NavBar />
             </Header>            
-        </>
+        </div>
     );
 };
 

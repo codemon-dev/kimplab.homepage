@@ -1,7 +1,7 @@
 .table-root {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .grid-wrapper {
@@ -9,7 +9,7 @@
   width: 100%;
 }
   
-#myGrid {
+.myGrid {
   height: 100%;
   width: 100%;
 }

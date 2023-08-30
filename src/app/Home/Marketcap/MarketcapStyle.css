@@ -1,0 +1,34 @@
+
+.rank-column {
+  min-width: 40px;
+  border-radius: 0 !important;
+}
+.symbol-column {
+  width: 100px;
+  border-radius: 0 !important;
+}
+
+.marketcap-column {
+  min-width: 120px;
+  border-radius: 0 !important;
+}
+
+.supply-column {
+  min-width: 140px;
+  border-radius: 0 !important;
+}
+
+.ant-table-title {
+  padding: 0 !important;
+  border-radius: 0 !important;
+}
+
+.ant-card-head {
+  padding: 0px 15px !important;
+  min-height: 40px !important;
+}
+
+.ant-card-body {
+  padding: 0px !important;
+  margin: 0px !important;
+}

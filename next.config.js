@@ -7,6 +7,10 @@ const rewrites = async () => {
             destination: "https://coincodex.com/apps/coincodex/cache/all_coins.json"
         },
         {
+            source: "/coindex_get_coin_charts/:path*",
+            destination: "https://coincodex.com/api/coincheckup/get_coin_charts/:path*"
+        },
+        {
             source: "/coingecko_exchange_tickers",
             destination: "https://api.coingecko.com/api/v3/exchanges/upbit/tickers"
         },
@@ -14,6 +18,10 @@ const rewrites = async () => {
             source: "/upbit_market_all",
             destination: "https://api.upbit.com/v1/market/all?isDetails=true",
         },
+        {
+            source: "/upbit_marketcap",
+            destination: "https://crix-api-cdn.upbit.com/v1/crix/marketcap?currency=KRW",
+        },        
         {
             source: "/binance_spot_exchangeinfo",
             destination: "https://api.binance.com/api/v3/exchangeInfo"
