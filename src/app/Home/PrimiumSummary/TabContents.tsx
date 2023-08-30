@@ -32,7 +32,7 @@ export const TabContents = ({symbol, exchange, aggTradeInfos}: IPrimiumTabConten
     const symbolRef = useRef("BTC");
     const isMountedRef = useRef(false)
     const currencyPrice = useRef(0);
-    const defaultDomesticExchange = useRef<EXCHANGE>(EXCHANGE.UPBIT)
+    const defaultOverseeExchange = useRef<EXCHANGE>(EXCHANGE.BINANCE)
     const aggTradeInfoMapRef = useRef<Map<EXCHANGE, IAggTradeInfo>>(new Map())
     const rawDataRef = useRef<DataType[]>([])
     const [rawData, setRawData] = useState<DataType[]>([])
@@ -105,7 +105,7 @@ export const TabContents = ({symbol, exchange, aggTradeInfos}: IPrimiumTabConten
     }, [])
 
     useEffect(() => {
-        defaultDomesticExchange.current = exchange;
+        defaultOverseeExchange.current = exchange;
         updateRawData();
     }, [exchange])
 
@@ -123,7 +123,7 @@ export const TabContents = ({symbol, exchange, aggTradeInfos}: IPrimiumTabConten
 
     const updateRawData = () => {        
         const rawData: DataType[] = []
-        let defaultAggTradeInfo = aggTradeInfoMapRef.current.get(defaultDomesticExchange.current)
+        let defaultAggTradeInfo = aggTradeInfoMapRef.current.get(defaultOverseeExchange.current)
         aggTradeInfoMapRef.current.forEach((value: IAggTradeInfo, key: EXCHANGE) => {
             if (!defaultAggTradeInfo) return;
             let isSameExchange = false;
@@ -132,7 +132,7 @@ export const TabContents = ({symbol, exchange, aggTradeInfos}: IPrimiumTabConten
             }
             
             let currency = 1;
-            if (defaultAggTradeInfo.marketInfo.marketCurrency === MARKET_CURRENCY.KRW && value.marketInfo.marketCurrency !== MARKET_CURRENCY.KRW) {
+            if (value.marketInfo.marketCurrency === MARKET_CURRENCY.KRW && defaultAggTradeInfo.marketInfo.marketCurrency !== MARKET_CURRENCY.KRW) {
                 currency = currencyPrice.current;
             }
 
@@ -142,7 +142,7 @@ export const TabContents = ({symbol, exchange, aggTradeInfos}: IPrimiumTabConten
             
             if (value.changeRate) priceRate = value.changeRate; 
             else if (value.changeRate_24h) priceRate24h = value.changeRate_24h;
-            primium = calculatePrimium(defaultAggTradeInfo.price, value.price, currency)
+            primium = calculatePrimium(value.price, defaultAggTradeInfo.price, currency)
 
             let data: DataType = {
                 key: value.exchange,

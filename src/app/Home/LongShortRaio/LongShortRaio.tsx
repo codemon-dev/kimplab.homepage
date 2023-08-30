@@ -9,7 +9,7 @@ import './LongShortRaioStyle.css';
 import { binance_usd_m_future_globalLongShortRatio } from "@/app/lib/exchange/binance/binanceCtrl";
 import { ILongShortRatio } from "@/config/interface";
 
-const supportSymbols = ["BTC", "ETH", "ADA", "XRP", "TRX", "DOGE", "SOL"]
+const supportSymbols = ["BTC", "ETH", "BCH", "ETC", "ADA", "XRP", "TRX", "DOGE", "SOL"]
 
 export const LongShortRaio = () => {
     const {state} = useGlobalStore();
@@ -56,8 +56,14 @@ export const LongShortRaio = () => {
     }, [])
 
     return (
-        <Card bordered={false} title="선물 LONG / SHORT 비율 (Binance USDⓈ-M Futures) " extra={<a href="#">More</a>} style={{flex: 1, display: "flex", flexDirection: "column", width: "100%", height: "100%", margin: 0, padding: 0}}>
-            <div style={{flex: 1, display: "flex", flexDirection: "column", alignItems: "space-around", justifyContent: "space-around"}}>
+        <Card 
+            bordered={false} title="LONG / SHORT 비율 (Binance USDⓈ-M Futures) " 
+            extra={<a href="#">More</a>} 
+            style={{flex: 1, display: "flex", flexDirection: "column", margin: 0, padding: 0}} 
+            bodyStyle={{flex: 1, display: "flex", flexDirection: "column"}}
+            headStyle={{backgroundColor: "#001529", color: "whitesmoke"}}
+        >
+            <div style={{flex: 1, display: "flex", flexDirection: "column", alignItems: "space-around", justifyContent: "space-around", padding: "10px 15px"}}>
                 {longShortRatioList}
             </div>
         </Card>            

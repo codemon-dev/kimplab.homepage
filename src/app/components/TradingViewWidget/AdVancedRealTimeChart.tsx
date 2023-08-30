@@ -12,8 +12,8 @@ export default function AdVancedRealTimeChart({option}: any) {
   useEffect(() => {
     advancedRealTimeChartPropsRef.current = option;
     onLoadScriptRef.current = createWidget();
-    console.log(advancedRealTimeChartPropsRef.current)
-    console.log(onLoadScriptRef.current)
+    // console.log(advancedRealTimeChartPropsRef.current)
+    // console.log(onLoadScriptRef.current)
     if (!tvScriptLoadingPromise) {
       tvScriptLoadingPromise = new Promise((resolve) => {
         const script = document.createElement('script');

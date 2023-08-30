@@ -21,6 +21,7 @@ export default function Marketcap() {
     const { state } = useGlobalStore();
     const [rawData, setRawData] = useState<DataType[]>([])
     const isMountRef = useRef(false);
+    const maxNumOfCoin = 10;
 
     const columns: ColumnsType<DataType> = [
         {
@@ -96,7 +97,7 @@ export default function Marketcap() {
                 timestamp: marketCapInfo.timestamp,
             }
             newRawdatas.push(data);                        
-            if (newRawdatas.length === 10) break;
+            if (newRawdatas.length === maxNumOfCoin) break;
         }
         if (newRawdatas && newRawdatas.length > 0) {
             setRawData([...newRawdatas])
@@ -107,7 +108,13 @@ export default function Marketcap() {
       };
     
     return (
-        <Card bordered={false} title="시가 총액" extra={<a href="#">More</a>} style={{flex: 1, display: "flex", flexDirection: "column", width: "100%", height: "100%", margin: 0, padding: 0, overflow: 'auto'}}>
+        <Card 
+            bordered={false} 
+            title="시가 총액" 
+            extra={<a href="#">More</a>} 
+            style={{flex: 1, display: "flex", flexDirection: "column", width: "100%", height: "100%", margin: 0, padding: 0, overflow: 'auto'}}
+            headStyle={{backgroundColor: "#001529", color: "whitesmoke"}}
+        >
             <Table
                 columns={columns}
                 dataSource={rawData}

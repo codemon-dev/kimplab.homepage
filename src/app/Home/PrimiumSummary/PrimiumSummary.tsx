@@ -11,7 +11,7 @@ import { useGlobalStore } from '@/app/hook/useGlobalStore';
 import useExchange from '@/app/hook/useExchange';
 import { getEmptyAggTradeInfo } from "@/app/lib/tradeHelper";
 
-const supportSymbols = ["BTC", "ETH", "ADA", "XRP", "TRX", "DOGE", "SOL"]
+const supportSymbols = ["BTC", "ETH", "BCH", "ETC", "ADA", "XRP", "TRX", "DOGE", "SOL"]
 
 interface TabItemType {
     label: string,
@@ -23,7 +23,7 @@ export const PrimiumSummary = () => {
     const {state} = useGlobalStore();
     const {startWebsocket} = useExchange()
     const isMountedRef = useRef(false)
-    const selectedDefaultExchange = useRef(EXCHANGE.UPBIT)
+    const selectedDefaultExchange = useRef(EXCHANGE.BINANCE)
     const selectedSymbol = useRef("BTC")
     const initWebsocketDone = useRef(false)
     const wsRef = useRef<Map<WS_TYPE, any>>(new Map<WS_TYPE, any>())
