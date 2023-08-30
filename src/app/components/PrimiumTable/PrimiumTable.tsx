@@ -24,6 +24,7 @@ import CoinTitle from '../CoinTitle';
 import Favorite from '../Favorite';
 import TetherComp from './TetherComp';
 import { getMarketInfo } from '@/app/helper/cryptoHelper';
+import AdVancedRealTimeChart from '../TradingViewWidget/AdVancedRealTimeChart';
 
 interface DataType {
   id: string;
@@ -53,17 +54,17 @@ interface DataType {
 
 const defaultAdvancedRealTimeChartProps: AdvancedRealTimeChartProps = {
     autosize: true,
-    //symbol: "UPBIT:BTCKRW",
-    symbol: "NONE",
+    symbol: "UPBIT:BTCKRW",
     interval: "240",
     // timezone?: Timezone;
     theme: "light",
     // style?: "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9";
     locale: "kr",    
-    enable_publishing: true,
+    enable_publishing: false,
     allow_symbol_change: false,
     save_image: true,    
     show_popup_button: true,    
+    withdateranges: true,
     // copyrightStyles: CopyrightStyles;
 } 
 
@@ -616,31 +617,21 @@ const PrimiumTable: React.FC = () => {
     };
   }, []);
 
-  const changeTradingView = useCallback((exchange_1: EXCHANGE, exchange_2: EXCHANGE, symbol: string, market_1: string, market_2: string) => {
-    const currency_1 = market_1.includes(MARKET_CURRENCY.KRW)? MARKET_CURRENCY.KRW : MARKET_CURRENCY.USD;
-    const currency_2 = market_2.includes(MARKET_CURRENCY.KRW)? MARKET_CURRENCY.KRW : MARKET_CURRENCY.USD;
+  const changeTradingView = useCallback((exchange_1: EXCHANGE, exchange_2: EXCHANGE, symbol: string, marketCurrency_1: string, marketCurrency_2: string) => {
+    if (!exchange_1 || exchange_1 === EXCHANGE.NONE || !exchange_2 || exchange_2 === EXCHANGE.NONE || !symbol || !marketCurrency_1 || marketCurrency_1 === MARKET_CURRENCY.NONE || !marketCurrency_2 || marketCurrency_2 === MARKET_CURRENCY.NONE) return;
+    const currency_1 = marketCurrency_1.includes(MARKET_CURRENCY.KRW)? MARKET_CURRENCY.KRW : MARKET_CURRENCY.USD;
+    const currency_2 = marketCurrency_2.includes(MARKET_CURRENCY.KRW)? MARKET_CURRENCY.KRW : MARKET_CURRENCY.USD;
     let newSymbol = ""
-    // ( -1) * 100\
-    // BINANCE:SANDUSDT*UPBIT:SANDKRW
-    // --------------------------------------------------
-    //FX_IDC:USDKRW
-
-    //(BINANCE:SANDUSDT/BINANCE:SANDUSDT*UPBIT:SANDKRW-BINANCE:SANDUSDT*FX_IDC:USDKRW)/(BINANCE:SANDUSDT*FX_IDC:USDKRW)*100
-    // newSymbol = `(${exchange_2}:${symbol}${market_2}/${exchange_2}:${symbol}${market_2}*${exchange_1}:${symbol}${market_1}-${exchange_2}:${symbol}${market_2}*FX_IDC:USDKRW)/(${exchange_2}:${symbol}${market_2}*FX_IDC:USDKRW)*100`;
-    // return wrapNumber((price1 / (price2 * currency) - 1) * 100);
 
     if (currency_1 === MARKET_CURRENCY.KRW && currency_2 === MARKET_CURRENCY.USD) {
-      newSymbol = `(${exchange_2}:${symbol}${market_2}/${exchange_2}:${symbol}${market_2}*${exchange_1}:${symbol}${market_1}-${exchange_2}:${symbol}${market_2}*FX_IDC:USDKRW)/(${exchange_2}:${symbol}${market_2}*FX_IDC:USDKRW)*100`;
-      // newSymbol = `((${exchange_1}:${symbol}${market_1}/(${exchange_2}:${symbol}${market_2}*FX_IDC:USDKRW) - 1) * 100)`;
+      newSymbol = `(${exchange_2}:${symbol}${marketCurrency_2}/${exchange_2}:${symbol}${marketCurrency_2}*${exchange_1}:${symbol}${marketCurrency_1}-${exchange_2}:${symbol}${marketCurrency_2}*FX_IDC:USDKRW)/(${exchange_2}:${symbol}${marketCurrency_2}*FX_IDC:USDKRW)*100`;
     } else if (currency_1 === MARKET_CURRENCY.USD && currency_2 === MARKET_CURRENCY.KRW) {
-      newSymbol = `(${exchange_2}:${symbol}${market_2}/${exchange_2}:${symbol}${market_2}*${exchange_1}:${symbol}${market_1}*FX_IDC:USDKRW-${exchange_2}:${symbol}${market_2})/(${exchange_2}:${symbol}${market_2})*100`;
-      // newSymbol = `((${exchange_1}:${symbol}${market_1}*FX_IDC:USDKRW)/${exchange_2}:${symbol}${market_2} - 1) * 100)`;
+      newSymbol = `(${exchange_2}:${symbol}${marketCurrency_2}/${exchange_2}:${symbol}${marketCurrency_2}*${exchange_1}:${symbol}${marketCurrency_1}*FX_IDC:USDKRW-${exchange_2}:${symbol}${marketCurrency_2})/(${exchange_2}:${symbol}${marketCurrency_2})*100`;
     } else {
-      newSymbol = `(${exchange_2}:${symbol}${market_2}/${exchange_2}:${symbol}${market_2}*${exchange_1}:${symbol}${market_1}-${exchange_2}:${symbol}${market_2})/(${exchange_2}:${symbol}${market_2})*100`;
-      // newSymbol = `((${exchange_1}:${symbol}${market_1}/${exchange_2}:${symbol}${market_2} - 1) * 100)`;
+      newSymbol = `(${exchange_2}:${symbol}${marketCurrency_2}/${exchange_2}:${symbol}${marketCurrency_2}*${exchange_1}:${symbol}${marketCurrency_1}-${exchange_2}:${symbol}${marketCurrency_2})/(${exchange_2}:${symbol}${marketCurrency_2})*100`;
     }
     
-    // console.log("newSymbol: ", newSymbol)
+    if (advancedRealTimeChartPropsRef.current.symbol === newSymbol) return;
     advancedRealTimeChartPropsRef.current = {...advancedRealTimeChartPropsRef.current, symbol: newSymbol}
     setAdvancedRealTimeChartProps(advancedRealTimeChartPropsRef.current)
   }, [])
@@ -675,17 +666,7 @@ const PrimiumTable: React.FC = () => {
   return (    
     <div style={{display: "flex", flex: 1, width: "100%", height: "100%", margin: 0, padding: 0}}>
       <div style={{flex: 1, height: "500px"}}>
-        <AdvancedRealTimeChart
-          symbol={advancedRealTimeChartProps.symbol}
-          autosize={advancedRealTimeChartProps.autosize} 
-          interval={advancedRealTimeChartProps.interval}
-          theme={advancedRealTimeChartProps.theme} 
-          locale={advancedRealTimeChartProps.locale}
-          enable_publishing={advancedRealTimeChartProps.enable_publishing}
-          allow_symbol_change={advancedRealTimeChartProps.allow_symbol_change}
-          save_image={advancedRealTimeChartProps.save_image}
-          show_popup_button={advancedRealTimeChartProps.show_popup_button}
-        />
+        <AdVancedRealTimeChart option={advancedRealTimeChartProps}/>
       </div>
       <div style={{display: "flex", flexDirection: "column", width: "800px", height: "100%", paddingLeft: "8px"}} className="ag-theme-alpine">
         <div style={{display: 'flex', flexDirection: "row", width: "100%", height: "50px", backgroundColor: "#192331", margin:0, padding: "0px 16px", justifyContent: "space-between", alignItems: "center"}}>

@@ -29,6 +29,8 @@ import CustomTag from '../CustomTag';
 import MenuItem from '../MenuItem';
 import { ExchangeDefaultInfo } from '@/config/constants';
 import { getMarketInfo } from '@/app/helper/cryptoHelper';
+import MiniChart from '../TradingViewWidget/MiniChart';
+import AdVancedRealTimeChart from '../TradingViewWidget/AdVancedRealTimeChart';
 
 
 interface DataType {
@@ -65,10 +67,11 @@ const defaultAdvancedRealTimeChartProps: AdvancedRealTimeChartProps = {
     theme: "light",
     // style?: "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9";
     locale: "kr",    
-    enable_publishing: true,
+    enable_publishing: false,
     allow_symbol_change: false,
     save_image: true,    
-    show_popup_button: true,    
+    show_popup_button: true,
+    withdateranges: true,
     // copyrightStyles: CopyrightStyles;
 }
 
@@ -153,7 +156,8 @@ const CoinPriceTable: React.FC = () => {
     }
   }, [])
 
-  const initialize = async () => {
+  const initialize = async (skipSetTradingView: boolean = false) => {
+    console.log("initialize")
     filterRef.current = [];
     let markets = exhcnageInfoMap.get(selectedRef.current.exchange)
     if (!markets) return;
@@ -172,7 +176,7 @@ const CoinPriceTable: React.FC = () => {
     } else if (selectedRef.current.exchange === EXCHANGE.BYBIT) {
       await initBybitWebSocket();
     }
-    setSelectedRowData();    
+    setSelectedRowData();
     changeTradingView(selectedRef.current.exchange, getFirstSymbolFromExchange(selectedRef.current.exchange, selectedRef.current.marketInfo.market), selectedRef.current.marketInfo.marketCurrency)
   }
 
@@ -571,6 +575,8 @@ const CoinPriceTable: React.FC = () => {
   }, []);
 
   const changeTradingView = (exhcnage: EXCHANGE, symbol: string, marketCurrency: string) => {
+    if (!exhcnage || exhcnage === EXCHANGE.NONE || !symbol || !marketCurrency || marketCurrency === MARKET_CURRENCY.NONE) return;
+    if (advancedRealTimeChartPropsRef.current.symbol === `${exhcnage}:${symbol}${marketCurrency}`) return;
     advancedRealTimeChartPropsRef.current = {...advancedRealTimeChartPropsRef.current, symbol: `${exhcnage}:${symbol}${marketCurrency}`}
     setAdvancedRealTimeChartProps(advancedRealTimeChartPropsRef.current)
   }
@@ -612,17 +618,7 @@ const CoinPriceTable: React.FC = () => {
   return (
     <div style={{display: "flex", flex: 1, width: "100%", height: "100%", margin: 0, padding: 0}}>
       <div style={{flex: 1, height: "500px"}}>
-        <AdvancedRealTimeChart
-          symbol={advancedRealTimeChartProps.symbol}
-          autosize={advancedRealTimeChartProps.autosize} 
-          interval={advancedRealTimeChartProps.interval}
-          theme={advancedRealTimeChartProps.theme} 
-          locale={advancedRealTimeChartProps.locale}
-          enable_publishing={advancedRealTimeChartProps.enable_publishing}
-          allow_symbol_change={advancedRealTimeChartProps.allow_symbol_change}
-          save_image={advancedRealTimeChartProps.save_image}
-          show_popup_button={advancedRealTimeChartProps.show_popup_button}
-        />
+        <AdVancedRealTimeChart option={advancedRealTimeChartProps}/>
       </div>
       <div style={{display: "flex", flexDirection: "column", width: "800px", height: "100%", paddingLeft: "8px"}} className="ag-theme-alpine">
         <div style={{display: 'flex', flexDirection: "row", width: "100%", height: "50px", backgroundColor: "#192331", margin:0, padding: "0px 16px", justifyContent: "space-between", alignItems: "center"}}>
@@ -671,67 +667,6 @@ const CoinPriceTable: React.FC = () => {
         </div>
       </div>
     </div>
-    // <Row style={{width: "100%", height: "100%", backgroundColor: "red"}}>
-    //   <Col span={14} style={{padding: 5}}>
-    //     <div style={{width: "100%", height: "50%"}}>
-    //       <AdvancedRealTimeChart
-    //         symbol={advancedRealTimeChartProps.symbol}
-    //         autosize={advancedRealTimeChartProps.autosize} 
-    //         interval={advancedRealTimeChartProps.interval}
-    //         theme={advancedRealTimeChartProps.theme} 
-    //         locale={advancedRealTimeChartProps.locale}
-    //         enable_publishing={advancedRealTimeChartProps.enable_publishing}
-    //         allow_symbol_change={advancedRealTimeChartProps.allow_symbol_change}
-    //         save_image={advancedRealTimeChartProps.save_image}
-    //         show_popup_button={advancedRealTimeChartProps.show_popup_button}
-    //       />
-    //     </div>
-    //   </Col>    
-    //   <Col span={10} style={{height: "100%"}} className="ag-theme-alpine">
-    //     <div style={{display: 'flex', flexDirection: "row", width: "100%", height: "50px", backgroundColor: "#192331", margin:0, padding: "0px 16px", justifyContent: "space-between", alignItems: "center"}}>
-    //       <Select
-    //         tagRender={CustomTag}
-    //         mode="tags"
-    //         style={{ backgroundColor: "transparent", margin: "0px 5px", padding: 0, flex: 1}}
-    //         placeholder="필터"
-    //         bordered={true}
-    //         onChange={onFilterTagChanged}
-    //         className="table-select"
-    //         suffixIcon={<SearchOutlined style={{fontSize: "20px"}}/>}
-    //         options={filterOption}
-    //       />              
-    //       <Select
-    //         style={{ width: 180, margin: "0px 5px" }}
-    //         value={selectedExchange}
-    //         bordered={true}
-    //         onChange={handleExchangeChange}
-    //         options={exchangeList}
-    //       />
-    //       <Select
-    //         style={{ width: 180, margin: "0px 5px" }}
-    //         value={selectedMarket.market}
-    //         bordered={true}
-    //         onChange={handleMarketChange}
-    //         options={marketOptions}
-    //       />
-    //       <Button shape="circle" style={{backgroundColor: 'whitesmoke', margin: "0px 5px"}} icon={<SettingOutlined style={{color: "#192331", fontSize: "20px"}}/>} />
-    //     </div>
-    //     <AgGridReact
-    //         ref={gridRef}
-    //         rowData={rowData}
-    //         columnDefs={columnDefs}
-    //         defaultColDef={{ sortable: true, resizable: false}}
-    //         cacheQuickFilter={true}
-    //         onGridReady={onGridReady}
-    //         getRowId={getRowId}
-    //         rowHeight={50}
-    //         rowBuffer={50}
-    //         className='myGrid'
-    //         loadingOverlayComponent={LoadingComp}
-    //         onRowClicked={onRowClicked}
-    //     />
-    //   </Col>
-    // </Row>
   );
 };
 

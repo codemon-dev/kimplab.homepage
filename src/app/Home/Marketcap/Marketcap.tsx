@@ -89,14 +89,15 @@ export default function Marketcap() {
     const updateRawData = async () => {
         if (state.marketCapInfos.length === 0) return;
         let newRawdatas: DataType[] = []
-        state.marketCapInfos.forEach((marketCapInfo: IMarketcapInfo) => {
+        for (const marketCapInfo of state.marketCapInfos) {            
             let data: DataType = {
                 key: marketCapInfo.symbol,
                 marketCapInfo: _.cloneDeep(marketCapInfo),
                 timestamp: marketCapInfo.timestamp,
             }
-            newRawdatas.push(data);            
-        })
+            newRawdatas.push(data);                        
+            if (newRawdatas.length === 10) break;
+        }
         if (newRawdatas && newRawdatas.length > 0) {
             setRawData([...newRawdatas])
         }

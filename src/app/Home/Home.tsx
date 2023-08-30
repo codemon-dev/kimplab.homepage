@@ -55,13 +55,13 @@ export default function Home() {
                     </Row>      
                     <Row gutter={[4, 8]} justify="center" align="top" style={{marginBottom: "8px"}}>
                         <Col flex="1 1 600px">
-                            <div style={{padding: "0px 4px", margin: 0, height: "600px"}}>                            
+                            <div style={{padding: "0px 4px", margin: 0, height: "485px"}}>                            
                                 <Marketcap />
                             </div>
                         </Col>
                         <Col flex="1 1 600px">
-                            <div style={{display: "flex", flexDirection: "column", padding: "0px 4px", margin: 0, height: "600px"}}>
-                                <LongShortRaio />
+                            <div style={{display: "flex", flexDirection: "column", padding: "0px 4px", margin: 0, height: "485px"}}>
+                                <Marketcap />
                             </div>
                         </Col>
                     </Row> 
