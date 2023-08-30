@@ -60,8 +60,8 @@ interface DataType {
 
 const defaultAdvancedRealTimeChartProps: AdvancedRealTimeChartProps = {
     autosize: true,
-    symbol: "UPBIT:BTCKRW",
-    // symbol: "NONE",
+    // symbol: "UPBIT:BTCKRW",
+    symbol: "NONE",
     interval: "240",
     // timezone?: Timezone;
     theme: "light",
@@ -156,7 +156,7 @@ const CoinPriceTable: React.FC = () => {
     }
   }, [])
 
-  const initialize = async (skipSetTradingView: boolean = false) => {
+  const initialize = async () => {
     console.log("initialize")
     filterRef.current = [];
     let markets = exhcnageInfoMap.get(selectedRef.current.exchange)
