@@ -7,11 +7,13 @@ let tvScriptLoadingPromise: any;
 export default function AdVancedRealTimeChart({option}: any) {
   const onLoadScriptRef = useRef<any>();
   const cointainerId = useRef<string>(`tradingview_${generateRandomString(8)}`)
-  const [advancedRealTimeChartProps, setAdvancedRealTimeChartProps] = useState<AdvancedRealTimeChartProps>();
+  const advancedRealTimeChartPropsRef = useRef<AdvancedRealTimeChartProps>()
 
   useEffect(() => {
-    setAdvancedRealTimeChartProps(option);
-    onLoadScriptRef.current = createWidget;
+    advancedRealTimeChartPropsRef.current = option;
+    onLoadScriptRef.current = createWidget();
+    console.log(advancedRealTimeChartPropsRef.current)
+    console.log(onLoadScriptRef.current)
     if (!tvScriptLoadingPromise) {
       tvScriptLoadingPromise = new Promise((resolve) => {
         const script = document.createElement('script');
@@ -24,7 +26,7 @@ export default function AdVancedRealTimeChart({option}: any) {
       });
     }
 
-    tvScriptLoadingPromise.then(() => onLoadScriptRef.current && onLoadScriptRef.current());
+    tvScriptLoadingPromise.then(() => onLoadScriptRef.current);
 
     return () => {
         onLoadScriptRef.current = null;    
@@ -34,18 +36,18 @@ export default function AdVancedRealTimeChart({option}: any) {
 
   const createWidget = () => {
     if (document.getElementById(cointainerId.current) && 'TradingView' in window) {
-      new window.TradingView.widget({
-        autosize: advancedRealTimeChartProps?.autosize,
-        symbol: advancedRealTimeChartProps?.symbol,
-        interval: advancedRealTimeChartProps?.interval,
-        theme: advancedRealTimeChartProps?.theme,
-        style: advancedRealTimeChartProps?.style,
-        locale: advancedRealTimeChartProps?.locale,
-        withdateranges: advancedRealTimeChartProps?.withdateranges,
+      return new window.TradingView.widget({
+        autosize: advancedRealTimeChartPropsRef.current?.autosize,
+        symbol: advancedRealTimeChartPropsRef.current?.symbol,
+        interval: advancedRealTimeChartPropsRef.current?.interval,
+        theme: advancedRealTimeChartPropsRef.current?.theme,
+        style: advancedRealTimeChartPropsRef.current?.style,
+        locale: advancedRealTimeChartPropsRef.current?.locale,
+        withdateranges: advancedRealTimeChartPropsRef.current?.withdateranges,
         enable_publishing: false,
-        allow_symbol_change: advancedRealTimeChartProps?.allow_symbol_change,
-        save_image: advancedRealTimeChartProps?.save_image,    
-        show_popup_button: advancedRealTimeChartProps?.show_popup_button,
+        allow_symbol_change: advancedRealTimeChartPropsRef.current?.allow_symbol_change,
+        save_image: advancedRealTimeChartPropsRef.current?.save_image,    
+        show_popup_button: advancedRealTimeChartPropsRef.current?.show_popup_button,
         container_id: cointainerId.current
       });
     }
