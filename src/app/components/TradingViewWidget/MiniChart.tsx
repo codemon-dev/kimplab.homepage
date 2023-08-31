@@ -20,6 +20,7 @@ export function MiniChart({exchange, coinPair}: any) {
             return;
         }
         isMountedRef.current = true;
+        setSymbol(`${exchange}:${coinPair}`)
         createScript();
         if (container.current) {
             container.current.appendChild(scriptRef.current);
@@ -49,7 +50,7 @@ export function MiniChart({exchange, coinPair}: any) {
         scriptRef.current = script;
       }
 
-      const updateScript = () => {        
+      const updateScript = () => {
         container.current.appendChild(scriptRef.current);
       }
 
@@ -60,4 +61,4 @@ export function MiniChart({exchange, coinPair}: any) {
     );
 }
 
-export default MiniChart;
+export default memo(MiniChart);

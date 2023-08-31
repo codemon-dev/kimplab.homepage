@@ -1,5 +1,5 @@
 import React from 'react';
-import CoinPriceTable from '../components/CoinPriceTable/CoinPriceTable';
+import CoinPriceTable from './CoinPriceTable/CoinPriceTable';
 
 export default function Price() {
   return  (

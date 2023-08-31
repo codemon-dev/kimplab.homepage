@@ -6,9 +6,9 @@ import { Card, Table } from "antd";
 import { useGlobalStore } from '../../hook/useGlobalStore';
 import { IMarketcapInfo } from "@/config/interface";
 import { ColumnsType } from "antd/es/table";
-import CoinTitle from "./CoinTitle";
 import "./MarketcapStyle.css"
-import PriceComp from "./PriceComp";
+import CoinTitle from "@/app/home/Marketcap/CoinTitle";
+import PriceComp from "@/app/home/Marketcap/PriceComp";
 
 
 interface DataType {

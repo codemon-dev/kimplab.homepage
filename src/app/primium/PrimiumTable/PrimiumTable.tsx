@@ -17,14 +17,14 @@ import { SearchOutlined, SettingOutlined } from '@ant-design/icons';
 import { AgGridReact } from 'ag-grid-react';
 import { PriceComp_1, PriceComp_2 } from './PriceComp';
 import { PrimiumComp, PrimiumEnterComp, PrimiumExitComp } from './PrimiumComp';
-import LoadingComp from '../LoadingComp';
-import CustomTag from '../CustomTag';
-import MenuItem from '../MenuItem';
-import CoinTitle from '../CoinTitle';
-import Favorite from '../Favorite';
+import CustomTag from '@/app/components/CustomTag';
+import MenuItem from '@/app/components/MenuItem';
+import CoinTitle from '@/app/components/CoinTitle';
+import Favorite from '@/app/components/Favorite';
 import TetherComp from './TetherComp';
 import { getMarketInfo } from '@/app/helper/cryptoHelper';
-import AdVancedRealTimeChart from '../TradingViewWidget/AdVancedRealTimeChart';
+import AdVancedRealTimeChart from '@/app/components/TradingViewWidget/AdVancedRealTimeChart';
+import LoadingComp from '@/app/components/LoadingComp';
 
 interface DataType {
   id: string;
@@ -277,6 +277,7 @@ const PrimiumTable: React.FC = () => {
     gridRef?.current?.api?.showLoadingOverlay();
     gridRef?.current?.api?.sizeColumnsToFit();
     changeTradingView(selectedRef_1.current.exchange, selectedRef_2.current.exchange, "BTC", selectedRef_1.current.marketInfo.marketCurrency, selectedRef_2.current.marketInfo.marketCurrency);
+    sizeColumnsToFit();
     isLoadingRef.current = false;
   }, [])
 
@@ -297,11 +298,15 @@ const PrimiumTable: React.FC = () => {
   const onGridReady = useCallback(() => {
     console.log("onGridReady");
     gridRef?.current?.api?.showLoadingOverlay();
-    gridRef?.current?.api?.sizeColumnsToFit();
+    sizeColumnsToFit();
     window.onresize = () => {
-      gridRef?.current?.api?.sizeColumnsToFit();
+      sizeColumnsToFit();
     }
   }, []);
+
+  const sizeColumnsToFit = useCallback(() => {
+    gridRef?.current?.api?.sizeColumnsToFit();
+  }, [])
   
   const createDataType = useCallback((symbol: string) => {
     const orderBook_1 = orderBookMapRef_1.current.get(symbol)
@@ -713,6 +718,7 @@ const PrimiumTable: React.FC = () => {
               defaultColDef={{ sortable: true, resizable: false}}
               cacheQuickFilter={true}
               onGridReady={onGridReady}
+              onComponentStateChanged={sizeColumnsToFit}
               getRowId={getRowId}
               rowHeight={50}
               rowBuffer={50}

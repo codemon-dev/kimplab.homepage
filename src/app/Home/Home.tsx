@@ -1,13 +1,13 @@
 "use client"
 
 import React, {useEffect, useState, useRef, useCallback} from 'react';
-import { Col, Row, } from 'antd';import PrimiumSummary from './PrimiumSummary/PrimiumSummary';
+import { Col, Row, } from 'antd';import PrimiumSummary from '@/app/home/PrimiumSummary/PrimiumSummary';
 import { TradingViewWidgetHeatMap } from '../components/TradingViewWidget/MarketcapHeatMap';
-import { FearGreed } from './FearGreed/FearGreed';
-import LongShortRaio from './LongShortRaio/LongShortRaio';
+import { FearGreed } from '@/app/home/FearGreed/FearGreed';
+import LongShortRaio from '@/app/home/LongShortRaio/LongShortRaio';
 import './HomeStyle.css';
-import MinMarketInfo from './MinMarketInfo/MinMarketInfo';
-import Marketcap from './Marketcap/Marketcap';
+import MinMarketInfo from '@/app/home/MinMarketInfo/MinMarketInfo';
+import Marketcap from '@/app/home/Marketcap/Marketcap';
 
 export default function Home() {
     const isMountRef = useRef(false);
@@ -43,7 +43,7 @@ export default function Home() {
                     <Row gutter={[4, 8]} justify="center" align="top" style={{marginBottom: "8px"}}>
                     {/* <Row gutter={[4, 8]} justify="center" align="top" style={{margin: "0 0 8px 0"}}> */}
                         <Col flex="1 1 600px">
-                            <div style={{padding: "0px 4px", margin: 0, height: "100%"}}>                            
+                            <div style={{padding: "0px 4px", margin: 0, height: "442px"}}>                            
                                 <PrimiumSummary />
                             </div>
                         </Col>
@@ -58,7 +58,7 @@ export default function Home() {
                             <div style={{padding: "0px 4px", margin: 0, height: "485px"}}>                            
                                 <Marketcap />
                             </div>
-                        </Col>
+                        </Col>                        
                         <Col flex="1 1 600px">
                             <div style={{display: "flex", flexDirection: "column", padding: "0px 4px", margin: 0, height: "485px"}}>
                                 <Marketcap />

@@ -4,7 +4,7 @@ import _ from "lodash";
 import React, { useEffect, useRef, useCallback, useState } from 'react';
 import { useGlobalStore } from '@/app/hook/useGlobalStore';
 import { Row, Col, Typography, Space, Divider } from 'antd';
-import CoinTitle from "./CoinTitle";
+import CoinTitle from "@/app/home/LongShortRaio/CoinTitle";
 const { Title, Text } = Typography;
 
 export const LongShortBar = ({symbol, long, short}: any) => {

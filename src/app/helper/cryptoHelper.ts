@@ -6,6 +6,8 @@ export const parseCoinInfoFromCoinPair = (exchnage: EXCHANGE, marketType: MARKET
     let symbol: string = "";
     let market: string = "";
     let marketCurrency: string = "";
+    if (!coinPair) return ({symbol, coinPair, market, marketCurrency});
+    
     if (exchnage === EXCHANGE.UPBIT) {
         symbol = coinPair.split('-')[1]
         marketCurrency = coinPair.split('-')[0]
@@ -99,3 +101,4 @@ export const removeTrailingZeros = (number: number, numOfFixed?: number) => {
     // Return the result
     return formattedNumber;
   }
+

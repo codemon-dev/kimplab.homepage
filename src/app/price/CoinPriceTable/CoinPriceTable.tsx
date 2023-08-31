@@ -17,20 +17,19 @@ import { IAggTradeInfo, IFilterCondition, IFilterModel, IMarketInfo, IMenuOption
 
 import { SearchOutlined, SettingOutlined } from '@ant-design/icons';
 import { Button, Col, Row, Select } from 'antd';
-import { CoinTitle } from '../CoinTitle'
 
-import Favorite from '../Favorite';
 import PriceChangeComp from './PriceChangeComp';
 import PriceComp from './PriceComp';
 import VolumeComp from './VolumeComp';
-import LoadingComp from '../LoadingComp';
 import HighLowPriceComp from './HighLowPriceComp';
-import CustomTag from '../CustomTag';
-import MenuItem from '../MenuItem';
 import { ExchangeDefaultInfo } from '@/config/constants';
 import { getMarketInfo } from '@/app/helper/cryptoHelper';
-import MiniChart from '../TradingViewWidget/MiniChart';
-import AdVancedRealTimeChart from '../TradingViewWidget/AdVancedRealTimeChart';
+import CoinTitle from '@/app/components/CoinTitle';
+import MenuItem from '@/app/components/MenuItem';
+import Favorite from '@/app/components/Favorite';
+import AdVancedRealTimeChart from '@/app/components/TradingViewWidget/AdVancedRealTimeChart';
+import LoadingComp from '@/app/components/LoadingComp';
+import CustomTag from '@/app/components/CustomTag';
 
 
 interface DataType {
@@ -178,6 +177,7 @@ const CoinPriceTable: React.FC = () => {
     }
     setSelectedRowData();
     changeTradingView(selectedRef.current.exchange, getFirstSymbolFromExchange(selectedRef.current.exchange, selectedRef.current.marketInfo.market), selectedRef.current.marketInfo.marketCurrency)
+    sizeColumnsToFit();
   }
 
   const getFirstSymbolFromExchange = (exchange: EXCHANGE, market: MARKET) => {
@@ -230,17 +230,22 @@ const CoinPriceTable: React.FC = () => {
     }
     setFilterOption(filterOptionRef.current)
     changeTradingView(selectedRef.current.exchange, getFirstSymbolFromExchange(selectedRef.current.exchange, selectedRef.current.marketInfo.market), selectedRef.current.marketInfo.marketCurrency)
+    sizeColumnsToFit();
   }
 
   const onGridReady = useCallback(() => {
     console.log("onGridReady");
     gridRef?.current?.api?.showLoadingOverlay();
     setSelectedRowData();
-    gridRef?.current?.api?.sizeColumnsToFit();
+    sizeColumnsToFit();
     window.onresize = () => {
-      gridRef?.current?.api?.sizeColumnsToFit();
+      sizeColumnsToFit();
     }
   }, []);
+
+  const sizeColumnsToFit = useCallback(() => {
+    gridRef?.current?.api?.sizeColumnsToFit();
+  }, [])
 
   const createDataType = (aggTradeInfo: IAggTradeInfo) => {
     const data: DataType = {
@@ -317,7 +322,7 @@ const CoinPriceTable: React.FC = () => {
         }
         const rowNode = gridRef?.current?.api?.getRowNode(data.id);
         if (!rowNode) { return; }
-        rowNode.setData(data);          
+        rowNode.setData(data);     
         if (preData) {
           if (preData.price != data.price) {
             gridRef?.current?.api?.flashCells({rowNodes: [rowNode], flashDelay: 400, fadeDelay: 100,})
@@ -620,7 +625,7 @@ const CoinPriceTable: React.FC = () => {
       <div style={{flex: 1, height: "500px"}}>
         <AdVancedRealTimeChart option={advancedRealTimeChartProps}/>
       </div>
-      <div style={{display: "flex", flexDirection: "column", width: "800px", height: "100%", paddingLeft: "8px"}} className="ag-theme-alpine">
+      <div style={{display: "flex", flexDirection: "column", width: "800px", height: "100%", marginLeft: "8px", padding: 0}} className="ag-theme-alpine">
         <div style={{display: 'flex', flexDirection: "row", width: "100%", height: "50px", backgroundColor: "#192331", margin:0, padding: "0px 16px", justifyContent: "space-between", alignItems: "center"}}>
           <Select
             tagRender={CustomTag}
@@ -657,6 +662,7 @@ const CoinPriceTable: React.FC = () => {
               defaultColDef={{ sortable: true, resizable: false}}
               cacheQuickFilter={true}
               onGridReady={onGridReady}
+              onComponentStateChanged={sizeColumnsToFit}
               getRowId={getRowId}
               rowHeight={50}
               rowBuffer={50}

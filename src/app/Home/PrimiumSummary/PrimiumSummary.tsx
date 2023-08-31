@@ -2,28 +2,23 @@
 
 import _ from "lodash";
 import React, { useEffect, useRef, useCallback, useState } from 'react';
-import { EXCHANGE, MARKET, WS_TYPE } from '@/config/enum';
-import { Tabs } from 'antd';
-import TabContents, { IPrimiumTabContentsProps } from './TabContents';
+import { EXCHANGE, MARKET, MARKET_CURRENCY, WS_TYPE } from '@/config/enum';
+import { Card, Tabs } from 'antd';
+import TabContents, { IPrimiumTabContentsProps } from '@/app/home/PrimiumSummary/TabContents';
 import { IAggTradeInfo } from '@/config/interface';
 import './PrimiumSummaryStyle.css'
 import { useGlobalStore } from '@/app/hook/useGlobalStore';
 import useExchange from '@/app/hook/useExchange';
 import { getEmptyAggTradeInfo } from "@/app/lib/tradeHelper";
+import { CardTabListType } from "antd/es/card";
 
 const supportSymbols = ["BTC", "ETH", "BCH", "ETC", "ADA", "XRP", "TRX", "DOGE", "SOL"]
-
-interface TabItemType {
-    label: string,
-    key: string,
-    children: any,
-}
 
 export const PrimiumSummary = () => {
     const {state} = useGlobalStore();
     const {startWebsocket} = useExchange()
     const isMountedRef = useRef(false)
-    const selectedDefaultExchange = useRef(EXCHANGE.BINANCE)
+    const selectedDefaultExchange = useRef(EXCHANGE.BINANCE)    
     const selectedSymbol = useRef("BTC")
     const initWebsocketDone = useRef(false)
     const wsRef = useRef<Map<WS_TYPE, any>>(new Map<WS_TYPE, any>())
@@ -31,8 +26,10 @@ export const PrimiumSummary = () => {
     const bithumb_aggTradeInfoMap = useRef<Map<string, IAggTradeInfo>>(new Map<string, IAggTradeInfo>())    
     const binance_aggTradeInfoMap = useRef<Map<string, IAggTradeInfo>>(new Map<string, IAggTradeInfo>())    
     const bybit_aggTradeInfoMap = useRef<Map<string, IAggTradeInfo>>(new Map<string, IAggTradeInfo>())    
-    const [tabItems, setTabItems] = useState<TabItemType[]>([])
-
+    const selectedTabKeyRef = useRef(supportSymbols[0]);
+    const [tabTitleList, setTabTitleList] = useState<any>();
+    const tabContentMapRef = useRef<Map<string, IPrimiumTabContentsProps>>(new Map())
+    const [selectedTabContent, setSelectedTabContent] = useState<IPrimiumTabContentsProps>({defaultExchange: selectedDefaultExchange.current, symbol: selectedSymbol.current, aggTradeInfos: []})
     
     useEffect(() => {
         if (isMountedRef.current === true) return;
@@ -55,6 +52,7 @@ export const PrimiumSummary = () => {
     }, [])
 
     const initialize = async () => {
+        createTabTileList();
         let promises = []
         promises.push(initUpbitWebSocket());
         promises.push(initBithumbWebSocket());
@@ -65,18 +63,22 @@ export const PrimiumSummary = () => {
         upateTabItem();
     }
 
-    const upateTabItem = () => {
-        let items: TabItemType[] = []
-        items = supportSymbols.map((symbol: string) => {
-            let tabData = createTabContentProps(symbol)
-            let item: TabItemType = {
+    const createTabTileList = () => {
+        let titleList: CardTabListType[] = []
+        supportSymbols.forEach((symbol: string) => {
+            titleList.push({
+                key: symbol, 
                 label: symbol,
-                key: symbol,
-                children: <TabContents symbol={tabData.symbol} exchange={tabData.exchange} aggTradeInfos={tabData.aggTradeInfos} />,
-            }
-            return item;
+                tab: <p>ddd</p>
+            })
         })
-        setTabItems([...items])
+        setTabTitleList([...titleList]);
+    }
+
+    const upateTabItem = () => {
+        supportSymbols.forEach((symbol: string) => {
+            tabContentMapRef.current.set(symbol, createTabContentProps(symbol))
+        })
     }
 
     const createTabContentProps = useCallback((symbol: string) => {
@@ -95,12 +97,12 @@ export const PrimiumSummary = () => {
         aggTradeInfoList.push(aggTradeInfo);
         
         let props: IPrimiumTabContentsProps = {
-            exchange: selectedDefaultExchange.current,
+            defaultExchange: selectedDefaultExchange.current,
             symbol,
             aggTradeInfos: aggTradeInfoList
         };
+        if (symbol == selectedSymbol.current) setSelectedTabContent(_.cloneDeep(props))
         return props;
-        
     }, [])
 
     const initUpbitWebSocket = useCallback(async () => {
@@ -158,18 +160,32 @@ export const PrimiumSummary = () => {
         })
     },[])
 
-    const onChange = (evt: any) => {
-        console.log("onChange. evt: ", evt)
+    const onChange = (key: any) => {
+        console.log("onChange. key: ", key)
+        if (!key) return;
+        selectedTabKeyRef.current = key
+        selectedSymbol.current = key
+        let preTabContent = tabContentMapRef.current.get(key)
+        if (!preTabContent) return;
+        console.log("preTabContent: ", preTabContent)
+        setSelectedTabContent(_.cloneDeep(preTabContent))
     }
 
     return (
-        <Tabs
-            tabBarGutter={0}
-            tabBarStyle={{margin: 0}}
-            onChange={onChange}
-            type="card"
-            items={tabItems}
-        />
+        <Card
+            bordered={false}
+            // style={{flex: 1, display: "flex", flexDirection: "column", width: "100%", height: "100%", margin: 0, padding: 0, overflow: 'auto'}}
+            headStyle={{backgroundColor: "#001529", color: "whitesmoke"}}
+            tabProps={{size: "small", type: "line", style:{backgroundColor: "transparent", color: "whitesmoke", flex: 1}}}
+            tabList={tabTitleList}
+            activeTabKey={selectedTabKeyRef.current}
+            onTabChange={onChange}
+        >
+            <TabContents 
+                symbol={selectedTabContent.symbol} 
+                defaultExchange={selectedTabContent.defaultExchange} 
+                aggTradeInfos={selectedTabContent.aggTradeInfos} />
+        </Card>
     );
 };
 

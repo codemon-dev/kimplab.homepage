@@ -6,13 +6,13 @@ let tvScriptLoadingPromise: any;
 
 export default function AdVancedRealTimeChart({option}: any) {
   const onLoadScriptRef = useRef<any>();
-  const cointainerId = useRef<string>(`tradingview_${generateRandomString(8)}`)
+  const cointainerId = useRef<string>(`tradingview_${generateRandomString(8) ?? ""}`)
   const advancedRealTimeChartPropsRef = useRef<AdvancedRealTimeChartProps>()
 
   useEffect(() => {
     advancedRealTimeChartPropsRef.current = option;
     onLoadScriptRef.current = createWidget();
-    // console.log(advancedRealTimeChartPropsRef.current)
+    console.log(advancedRealTimeChartPropsRef.current)
     // console.log(onLoadScriptRef.current)
     if (!tvScriptLoadingPromise) {
       tvScriptLoadingPromise = new Promise((resolve) => {

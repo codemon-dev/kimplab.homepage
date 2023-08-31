@@ -3,16 +3,18 @@
 import { CURRENCY_SITE_TYPE, EXCHANGE, MARKET_CURRENCY } from '@/config/enum';
 import { Avatar, Row, Col, Typography, Table } from 'antd';
 import { ColumnsType } from 'antd/es/table';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import './PrimiumSummaryStyle.css'
 import { IAggTradeInfo } from '@/config/interface';
 import { useGlobalStore } from '@/app/hook/useGlobalStore';
 import { calculatePrimium } from '@/app/lib/tradeHelper';
-import PriceComp from './PriceComp';
-import { PrimiumComp } from './PrimiumComp';
-import PriceChangeComp from './PriceChangeComp';
+import PriceComp from '@/app/home/PrimiumSummary/PriceComp';
+import { PrimiumComp } from '@/app/home/PrimiumSummary/PrimiumComp';
+import PriceChangeComp from '@/app/home/PrimiumSummary/PriceChangeComp';
 import ExchangeTitle from '@/app/components/ExchangeTitle';
 import MiniChart from '@/app/components/TradingViewWidget/MiniChart';
+import AdVancedRealTimeChart from '@/app/components/TradingViewWidget/AdVancedRealTimeChart';
+import { AdvancedRealTimeChartProps } from 'react-ts-tradingview-widgets';
 
 interface DataType {
     key: string;
@@ -23,22 +25,42 @@ interface DataType {
 
 export interface IPrimiumTabContentsProps {
     symbol: any, 
-    exchange: EXCHANGE, 
+    defaultExchange: EXCHANGE, 
     aggTradeInfos: IAggTradeInfo[]
 }
 
-export const TabContents = ({symbol, exchange, aggTradeInfos}: IPrimiumTabContentsProps) => {
+const defaultAdvancedRealTimeChartProps: AdvancedRealTimeChartProps = {
+    autosize: true,
+    symbol: "UPBIT:BTCKRW",
+    // symbol: "NONE",
+    interval: "240",
+    // timezone?: Timezone;
+    theme: "light",
+    // style?: "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9";
+    locale: "kr",    
+    enable_publishing: false,
+    allow_symbol_change: false,
+    save_image: true,    
+    show_popup_button: true,
+    withdateranges: false,
+    // copyrightStyles: CopyrightStyles;
+}
+
+export const TabContents = ({symbol, defaultExchange, aggTradeInfos}: IPrimiumTabContentsProps) => {
     const {state} = useGlobalStore();
-    const symbolRef = useRef("BTC");
+    const symbolRef = useRef(symbol);
+    const selectedMarketCurrency = useRef<MARKET_CURRENCY>(MARKET_CURRENCY.KRW);
+    const coinPairRef = useRef<string>(`${symbol}${selectedMarketCurrency.current}`)
     const isMountedRef = useRef(false)
     const currencyPrice = useRef(0);
     const defaultOverseeExchange = useRef<EXCHANGE>(EXCHANGE.BINANCE)
     const aggTradeInfoMapRef = useRef<Map<EXCHANGE, IAggTradeInfo>>(new Map())
     const rawDataRef = useRef<DataType[]>([])
     const [rawData, setRawData] = useState<DataType[]>([])
-    const [coinPair, setCoinPair] = useState<string>(`${symbol}KRW`)
-    const [selExchange, setSelExchange] = useState<EXCHANGE>(aggTradeInfos[0].exchange)
     const intervalRef = useRef<any>()
+    const chartOptionRef = useRef<AdvancedRealTimeChartProps>(defaultAdvancedRealTimeChartProps);
+    const selectedExchangeRef = useRef<EXCHANGE>(EXCHANGE.UPBIT);
+    const [chartOption, setChartOption] = useState<AdvancedRealTimeChartProps>(chartOptionRef.current)
 
     const columns: ColumnsType<DataType> = [
         {
@@ -90,9 +112,13 @@ export const TabContents = ({symbol, exchange, aggTradeInfos}: IPrimiumTabConten
     ];
 
     useEffect(() => {
+        console.log("symbol, exchange", symbol, defaultExchange)
         if (isMountedRef.current === true) return;
         isMountedRef.current = true;       
-        symbolRef.current = symbol;
+        defaultOverseeExchange.current = defaultExchange;
+        selectedExchangeRef.current = EXCHANGE.UPBIT;
+        selectedMarketCurrency.current = MARKET_CURRENCY.KRW;
+        // updateChartOption();
         intervalRef.current = setInterval(()=> {
             setRawData([...rawDataRef.current])
         }, 200)
@@ -105,16 +131,23 @@ export const TabContents = ({symbol, exchange, aggTradeInfos}: IPrimiumTabConten
     }, [])
 
     useEffect(() => {
-        defaultOverseeExchange.current = exchange;
-        updateRawData();
-    }, [exchange])
-
-    useEffect(() => {
+        // console.log("aggTradeInfos", aggTradeInfos)
         aggTradeInfos?.forEach((aggTradeInfo: IAggTradeInfo) => {
             aggTradeInfoMapRef.current.set(aggTradeInfo.exchange, aggTradeInfo);
         })        
         updateRawData();
-    }, [aggTradeInfos])
+    }, [symbol, aggTradeInfos])
+
+    useEffect(() => {
+        updateChartOption();     
+    }, [symbol])
+
+    const updateChartOption = () => {
+        symbolRef.current = symbol;
+        coinPairRef.current = `${symbol}${selectedMarketCurrency.current}`;
+        chartOptionRef.current.symbol = `${selectedExchangeRef.current}:${coinPairRef.current}`
+        setChartOption({...chartOptionRef.current})
+    }
 
     useEffect(() => {
         currencyPrice.current = state.currencyInfos.get(CURRENCY_SITE_TYPE.WEBULL)?.price ?? 0;
@@ -154,7 +187,20 @@ export const TabContents = ({symbol, exchange, aggTradeInfos}: IPrimiumTabConten
         })
         rawDataRef.current = [...rawData]        
     }
-    
+
+    const onClickRaw = (record: any, rowIndex: any) => {
+        return { onClick: (event: any) => {
+                console.log(record.key);
+                selectedExchangeRef.current = record.key as EXCHANGE;
+                if (selectedExchangeRef.current === EXCHANGE.UPBIT || selectedExchangeRef.current === EXCHANGE.BITHUMB) {
+                    selectedMarketCurrency.current = MARKET_CURRENCY.KRW
+                } else {
+                    selectedMarketCurrency.current = MARKET_CURRENCY.USDT
+                }
+                updateChartOption();
+            }
+        };
+    }
 
     return (
         <Table
@@ -163,21 +209,16 @@ export const TabContents = ({symbol, exchange, aggTradeInfos}: IPrimiumTabConten
             bordered
             pagination={false}
             size={"small"}
-            style={{padding: 0}}
+            style={{padding: 0, borderBottomLeftRadius: "8px"}}
             title={() => (
-                <div style={{height: "200px", padding: 0}}>{
-                    <MiniChart exchange={selExchange} coinPair={coinPair}/>
-                }</div>
+                <div style={{height: "200px", padding: 0}}>
+                    {/* <AdVancedRealTimeChart option={chartOption}/> */}
+                    <MiniChart exchange={selectedExchangeRef.current} coinPair={coinPairRef.current}/>
+                </div>
             )}
-            onRow={(record, rowIndex) => {
-                return {onClick: (event) => {
-                        console.log(record.key);
-                        setSelExchange(record.key as EXCHANGE);
-                    }
-                };
-            }}
+            onRow={onClickRaw}
         />
     );
 };
 
-export default TabContents;
+export default memo(TabContents);

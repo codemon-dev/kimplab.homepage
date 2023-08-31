@@ -1,5 +1,5 @@
 import React from 'react';
-import PrimiumTable from '../components/PrimiumTable/PrimiumTable';
+import PrimiumTable from './PrimiumTable/PrimiumTable';
 
 export default function Bot() {
   return  (

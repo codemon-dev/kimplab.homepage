@@ -4,7 +4,7 @@ import 'antd/dist/reset.css';
 import { type PropsWithChildren } from 'react'
 import { Inter } from 'next/font/google';
 import Providers from './components/Providers';
-import RootLayout from './components/RootLayout';
+import RootLayout from './layout/RootLayout';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata = {
