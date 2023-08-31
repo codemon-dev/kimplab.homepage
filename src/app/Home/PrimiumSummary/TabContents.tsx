@@ -29,26 +29,8 @@ export interface IPrimiumTabContentsProps {
     aggTradeInfos: IAggTradeInfo[]
 }
 
-const defaultAdvancedRealTimeChartProps: AdvancedRealTimeChartProps = {
-    autosize: true,
-    symbol: "UPBIT:BTCKRW",
-    // symbol: "NONE",
-    interval: "240",
-    // timezone?: Timezone;
-    theme: "light",
-    // style?: "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9";
-    locale: "kr",    
-    enable_publishing: false,
-    allow_symbol_change: false,
-    save_image: true,    
-    show_popup_button: true,
-    withdateranges: false,
-    // copyrightStyles: CopyrightStyles;
-}
-
 export const TabContents = ({symbol, defaultExchange, aggTradeInfos}: IPrimiumTabContentsProps) => {
     const {state} = useGlobalStore();
-    const symbolRef = useRef(symbol);
     const selectedMarketCurrency = useRef<MARKET_CURRENCY>(MARKET_CURRENCY.KRW);
     const coinPairRef = useRef<string>(`${symbol}${selectedMarketCurrency.current}`)
     const isMountedRef = useRef(false)
@@ -58,9 +40,9 @@ export const TabContents = ({symbol, defaultExchange, aggTradeInfos}: IPrimiumTa
     const rawDataRef = useRef<DataType[]>([])
     const [rawData, setRawData] = useState<DataType[]>([])
     const intervalRef = useRef<any>()
-    const chartOptionRef = useRef<AdvancedRealTimeChartProps>(defaultAdvancedRealTimeChartProps);
     const selectedExchangeRef = useRef<EXCHANGE>(EXCHANGE.UPBIT);
-    const [chartOption, setChartOption] = useState<AdvancedRealTimeChartProps>(chartOptionRef.current)
+    const miniChartMap = useRef<Map<string, any>>(new Map())
+    const [selectedMiniChart, setSelectedMiniChart] = useState<any>()
 
     const columns: ColumnsType<DataType> = [
         {
@@ -118,7 +100,7 @@ export const TabContents = ({symbol, defaultExchange, aggTradeInfos}: IPrimiumTa
         defaultOverseeExchange.current = defaultExchange;
         selectedExchangeRef.current = EXCHANGE.UPBIT;
         selectedMarketCurrency.current = MARKET_CURRENCY.KRW;
-        // updateChartOption();
+        updateMiniChart()
         intervalRef.current = setInterval(()=> {
             setRawData([...rawDataRef.current])
         }, 200)
@@ -139,20 +121,21 @@ export const TabContents = ({symbol, defaultExchange, aggTradeInfos}: IPrimiumTa
     }, [symbol, aggTradeInfos])
 
     useEffect(() => {
-        updateChartOption();     
+        updateMiniChart();     
     }, [symbol])
-
-    const updateChartOption = () => {
-        symbolRef.current = symbol;
-        coinPairRef.current = `${symbol}${selectedMarketCurrency.current}`;
-        chartOptionRef.current.symbol = `${selectedExchangeRef.current}:${coinPairRef.current}`
-        setChartOption({...chartOptionRef.current})
-    }
 
     useEffect(() => {
         currencyPrice.current = state.currencyInfos.get(CURRENCY_SITE_TYPE.WEBULL)?.price ?? 0;
         updateRawData();
     }, [state.currencyInfos])
+
+    const updateMiniChart = () => {
+        coinPairRef.current = `${symbol}${selectedMarketCurrency.current}`
+        const key = `${selectedExchangeRef.current}_${coinPairRef.current}`;
+        const miniChart = <MiniChart exchange={selectedExchangeRef.current} coinPair={coinPairRef.current}/>
+        miniChartMap.current.set(key, miniChart)
+        setSelectedMiniChart(_.cloneDeep(miniChart))
+    }
 
     const updateRawData = () => {        
         const rawData: DataType[] = []
@@ -197,7 +180,7 @@ export const TabContents = ({symbol, defaultExchange, aggTradeInfos}: IPrimiumTa
                 } else {
                     selectedMarketCurrency.current = MARKET_CURRENCY.USDT
                 }
-                updateChartOption();
+                updateMiniChart();
             }
         };
     }
@@ -212,8 +195,7 @@ export const TabContents = ({symbol, defaultExchange, aggTradeInfos}: IPrimiumTa
             style={{padding: 0, borderBottomLeftRadius: "8px"}}
             title={() => (
                 <div style={{height: "200px", padding: 0}}>
-                    {/* <AdVancedRealTimeChart option={chartOption}/> */}
-                    <MiniChart exchange={selectedExchangeRef.current} coinPair={coinPairRef.current}/>
+                    {selectedMiniChart}
                 </div>
             )}
             onRow={onClickRaw}
