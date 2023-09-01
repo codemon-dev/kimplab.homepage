@@ -1,13 +1,13 @@
 "use client"
 
 import React, {useEffect, useState, useRef, useCallback} from 'react';
-import { Col, Row, } from 'antd';import PrimiumSummary from '@/app/home/PrimiumSummary/PrimiumSummary';
+import { Col, Row, } from 'antd';import PrimiumSummary from '@/app/dashboard/PrimiumSummary/PrimiumSummary';
 import { TradingViewWidgetHeatMap } from '../components/TradingViewWidget/MarketcapHeatMap';
-import { FearGreed } from '@/app/home/FearGreed/FearGreed';
-import LongShortRaio from '@/app/home/LongShortRaio/LongShortRaio';
+import { FearGreed } from '@/app/dashboard/FearGreed/FearGreed';
+import LongShortRaio from '@/app/dashboard/LongShortRaio/LongShortRaio';
 import './DashBoardStyle.css';
-import MinMarketInfo from '@/app/home/MinMarketInfo/MinMarketInfo';
-import Marketcap from '@/app/home/Marketcap/Marketcap';
+import MinMarketInfo from '@/app/dashboard/MinMarketInfo/MinMarketInfo';
+import Marketcap from '@/app/dashboard/Marketcap/Marketcap';
 import FundingRate from './FundingRate/FundingRate';
 
 export default function DashBoard() {
