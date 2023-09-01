@@ -1,6 +1,6 @@
 export const getCountdown = (timestamp: number, includeDate: boolean = false) => {
     // 입력된 타임스탬프를 밀리초로 변환합니다.
-  const targetTime = new Date(timestamp * 1000).getTime(); // Convert to milliseconds
+  const targetTime = new Date(timestamp).getTime(); // Convert to milliseconds
 
   // 현재 시간을 가져옵니다.
   const currentTime = new Date().getTime(); // Convert to milliseconds
