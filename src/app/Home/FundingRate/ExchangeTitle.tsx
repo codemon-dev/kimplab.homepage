@@ -28,7 +28,7 @@ export const ExchangeTitle = ({exchange, postfix}: Props) => {
     
     return (
         <div style={{display: 'flex', flexDirection: "row", alignItems: "center", justifyContent: "flex-end", margin: 0, padding: 0}}>
-            <Avatar src={exchangeImg} style={{ backgroundColor: "white", verticalAlign: 'middle'}} size="small" gap={5}>
+            <Avatar src={exchangeImg} style={{ backgroundColor: "white", verticalAlign: 'middle', height: "22px", width: "22px"}} size="small" gap={0}>
                 {exchangeImg? null: exchange}
             </Avatar>
             <div style={{display: 'flex', flexDirection: "column", alignItems: "flex-start", justifyContent: "center", margin: 0, padding: 0, paddingLeft: 6}}>

@@ -49,20 +49,20 @@ export default function Home() {
                             </div>
                         </Col>
                         <Col flex="1 1 600px">
-                            <div style={{display: "flex", flexDirection: "column", padding: "0px 4px", margin: 0, height: "442px"}}>
+                            <div style={{display: "flex", padding: "0px 4px", margin: 0, height: "442px"}}>
                                 <LongShortRaio />
                             </div>
                         </Col>
                     </Row>      
                     <Row gutter={[4, 8]} justify="center" align="top" style={{marginBottom: "8px"}}>
                         <Col flex="1 1 600px">
-                            <div style={{padding: "0px 4px", margin: 0, height: "485px"}}>                            
-                                <Marketcap />
+                            <div style={{padding: "0px 4px", margin: 0, height: "486px"}}>                            
+                                <FundingRate />
                             </div>
                         </Col>                        
                         <Col flex="1 1 600px">
-                            <div style={{display: "flex", flexDirection: "column", padding: "0px 4px", margin: 0, height: "485px"}}>
-                                <FundingRate />
+                            <div style={{display: "flex", padding: "0px 4px", margin: 0, height: "486px"}}>
+                                <Marketcap />
                             </div>
                         </Col>
                     </Row> 

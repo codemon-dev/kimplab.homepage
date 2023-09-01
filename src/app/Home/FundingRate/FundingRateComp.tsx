@@ -56,6 +56,9 @@ export const FundingRateComp = ({fundingFeeInfo}: Props) => {
         <div style={{display: 'flex', flexDirection: "row", alignItems: "center", justifyContent: "flex-end", margin: 0, padding: 0}}>
             <Text style={{color: color, margin: 0, fontSize: "14px"}}>{fundingRate}</Text>
             <Text style={{color: "black", margin: 0, fontSize: "14px", marginLeft: "8px"}}>{countdown}</Text>
+            {/* <div style={{height: "100%"}}>
+                <Text style={{color: "black", margin: 0, fontSize: "8px", marginLeft: "8px"}}>{countdown}</Text>
+            </div> */}
         </div>
     );
 };

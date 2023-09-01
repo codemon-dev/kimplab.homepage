@@ -10,6 +10,7 @@ import { ColumnsType } from "antd/es/table";
 import CoinTitle from "./CoinTitle";
 import FundingRateComp from "./FundingRateComp";
 import ExchangeTitle from "./ExchangeTitle";
+import "./FundingRateStyle.css"
 
 const supportSymbols = ["BTC", "ETH", "BCH", "ETC", "ADA", "XRP", "TRX", "DOGE", "SOL", "EOS"]
 
@@ -130,7 +131,6 @@ export const FundingRate = () => {
             return dataType;
         })
         setRawData(_.cloneDeep(newRawData));
-        console.log(newRawData);
     }
 
     return (
@@ -138,7 +138,7 @@ export const FundingRate = () => {
             bordered={false} 
             title="Funding Rate" 
             extra={<a href="#">More</a>} 
-            style={{flex: 1, display: "flex", flexDirection: "column", width: "100%", height: "100%", margin: 0, padding: 0}}
+            style={{flex: 1, display: "flex", flexDirection: "column", width: "100%", height: "100%", margin: 0, padding: 0, overflow: 'auto'}}
             headStyle={{backgroundColor: "#001529", color: "whitesmoke", margin: 0}}
         >
             <Table
@@ -148,6 +148,7 @@ export const FundingRate = () => {
                 pagination={false}
                 size={"small"}
                 style={{flex: 1, padding: 0, margin: 0}}
+                rowClassName={"funding-rate-raw"}
             />
         </Card>
     )

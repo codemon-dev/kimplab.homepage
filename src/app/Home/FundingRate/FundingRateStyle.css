@@ -9,6 +9,10 @@
   border-radius: 0 !important;
 }
 
+.funding-rate-raw {
+  height: 30px !important;
+}
+
 .ant-table-title {
   padding: 0 !important;
   border-radius: 0 !important;
