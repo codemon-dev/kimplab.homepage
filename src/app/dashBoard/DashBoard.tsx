@@ -5,12 +5,12 @@ import { Col, Row, } from 'antd';import PrimiumSummary from '@/app/home/PrimiumS
 import { TradingViewWidgetHeatMap } from '../components/TradingViewWidget/MarketcapHeatMap';
 import { FearGreed } from '@/app/home/FearGreed/FearGreed';
 import LongShortRaio from '@/app/home/LongShortRaio/LongShortRaio';
-import './HomeStyle.css';
+import './DashBoardStyle.css';
 import MinMarketInfo from '@/app/home/MinMarketInfo/MinMarketInfo';
 import Marketcap from '@/app/home/Marketcap/Marketcap';
 import FundingRate from './FundingRate/FundingRate';
 
-export default function Home() {
+export default function DashBoard() {
     const isMountRef = useRef(false);
 
     useEffect(() => {

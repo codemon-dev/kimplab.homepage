@@ -1,10 +1,10 @@
 import React from 'react';
-import Home from './home/Home';
+import DashBoard from './dashboard/DashBoard';
 
 export default function HomePage() {
   return (
     <div style={{width: "100%", height: "100%"}}>
-      <Home />
+      <DashBoard />
     </div>
   );
 }
