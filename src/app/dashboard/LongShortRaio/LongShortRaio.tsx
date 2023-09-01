@@ -3,7 +3,7 @@
 import _ from "lodash";
 import React, { useEffect, useRef, useCallback, useState } from 'react';
 import { useGlobalStore } from '@/app/hook/useGlobalStore';
-import LongShortBar from "@/app/dashBoard/LongShortRaio/LongShortBar";
+import LongShortBar from "@/app/dashboard/LongShortRaio/LongShortBar";
 import { Card } from "antd";
 import './LongShortRaioStyle.css';
 import { binance_usd_m_future_globalLongShortRatio } from "@/app/lib/exchange/binance/binanceCtrl";
