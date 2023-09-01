@@ -7,8 +7,8 @@ import { useGlobalStore } from '../../hook/useGlobalStore';
 import { IMarketcapInfo } from "@/config/interface";
 import { ColumnsType } from "antd/es/table";
 import "./MarketcapStyle.css"
-import CoinTitle from "@/app/home/Marketcap/CoinTitle";
-import PriceComp from "@/app/home/Marketcap/PriceComp";
+import CoinTitle from "@/app/dashboard/Marketcap/CoinTitle";
+import PriceComp from "@/app/dashboard/Marketcap/PriceComp";
 
 
 interface DataType {

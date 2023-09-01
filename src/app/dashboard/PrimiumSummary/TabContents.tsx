@@ -9,9 +9,9 @@ import './PrimiumSummaryStyle.css'
 import { IAggTradeInfo } from '@/config/interface';
 import { useGlobalStore } from '@/app/hook/useGlobalStore';
 import { calculatePrimium } from '@/app/lib/tradeHelper';
-import PriceComp from '@/app/home/PrimiumSummary/PriceComp';
-import { PrimiumComp } from '@/app/home/PrimiumSummary/PrimiumComp';
-import PriceChangeComp from '@/app/home/PrimiumSummary/PriceChangeComp';
+import PriceComp from '@/app/dashboard/PrimiumSummary/PriceComp';
+import { PrimiumComp } from '@/app/dashboard/PrimiumSummary/PrimiumComp';
+import PriceChangeComp from '@/app/dashboard/PrimiumSummary/PriceChangeComp';
 import ExchangeTitle from '@/app/components/ExchangeTitle';
 import MiniChart from '@/app/components/TradingViewWidget/MiniChart';
 

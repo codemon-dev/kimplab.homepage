@@ -4,7 +4,7 @@ import _ from "lodash";
 import React, { useEffect, useRef, useCallback, useState } from 'react';
 import { EXCHANGE, MARKET, MARKET_CURRENCY, WS_TYPE } from '@/config/enum';
 import { Card, Tabs } from 'antd';
-import TabContents, { IPrimiumTabContentsProps } from '@/app/home/PrimiumSummary/TabContents';
+import TabContents, { IPrimiumTabContentsProps } from '@/app/dashboard/PrimiumSummary/TabContents';
 import { IAggTradeInfo } from '@/config/interface';
 import './PrimiumSummaryStyle.css'
 import { useGlobalStore } from '@/app/hook/useGlobalStore';
