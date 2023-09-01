@@ -12,7 +12,7 @@ import useExchange from '@/app/hook/useExchange';
 import { getEmptyAggTradeInfo } from "@/app/lib/tradeHelper";
 import { CardTabListType } from "antd/es/card";
 
-const supportSymbols = ["BTC", "ETH", "BCH", "ETC", "ADA", "XRP", "TRX", "DOGE", "SOL"]
+const supportSymbols = ["BTC", "ETH", "BCH", "ETC", "ADA", "XRP", "TRX", "DOGE", "SOL", "EOS"]
 
 export const PrimiumSummary = () => {
     const {state} = useGlobalStore();

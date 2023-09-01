@@ -8,6 +8,7 @@ import LongShortRaio from '@/app/home/LongShortRaio/LongShortRaio';
 import './HomeStyle.css';
 import MinMarketInfo from '@/app/home/MinMarketInfo/MinMarketInfo';
 import Marketcap from '@/app/home/Marketcap/Marketcap';
+import FundingRate from './FundingRate/FundingRate';
 
 export default function Home() {
     const isMountRef = useRef(false);
@@ -61,7 +62,7 @@ export default function Home() {
                         </Col>                        
                         <Col flex="1 1 600px">
                             <div style={{display: "flex", flexDirection: "column", padding: "0px 4px", margin: 0, height: "485px"}}>
-                                <Marketcap />
+                                <FundingRate />
                             </div>
                         </Col>
                     </Row> 

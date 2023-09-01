@@ -124,7 +124,6 @@ export default function Marketcap() {
                 size={"small"}
                 style={{flex: 1, padding: 0, margin: 0}}
             />
-        </Card>        
-
+        </Card>
     );
 }

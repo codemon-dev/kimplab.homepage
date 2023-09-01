@@ -9,7 +9,7 @@ import './LongShortRaioStyle.css';
 import { binance_usd_m_future_globalLongShortRatio } from "@/app/lib/exchange/binance/binanceCtrl";
 import { ILongShortRatio } from "@/config/interface";
 
-const supportSymbols = ["BTC", "ETH", "BCH", "ETC", "ADA", "XRP", "TRX", "DOGE", "SOL"]
+const supportSymbols = ["BTC", "ETH", "BCH", "ETC", "ADA", "XRP", "TRX", "DOGE", "SOL", "EOS"]
 
 export const LongShortRaio = () => {
     const {state} = useGlobalStore();

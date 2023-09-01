@@ -5,9 +5,21 @@ import { useGlobalStore } from '@/app/hook/useGlobalStore';
 import { EXCHANGE, WS_TYPE } from '@/config/enum';
 import { IFundingFeeInfo, IMarketInfo } from '@/config/interface';
 import React, { useEffect, useRef, useState }from 'react';
-import { Table } from "antd";
+import { Card, Table } from "antd";
+import { ColumnsType } from "antd/es/table";
+import CoinTitle from "./CoinTitle";
+import FundingRateComp from "./FundingRateComp";
+import ExchangeTitle from "./ExchangeTitle";
 
-export const FundingFeeSummary = () => {
+const supportSymbols = ["BTC", "ETH", "BCH", "ETC", "ADA", "XRP", "TRX", "DOGE", "SOL", "EOS"]
+
+interface DataType {
+    key: string;
+    fundingFeeInfo: IFundingFeeInfo;
+    timestamp: number;
+}
+
+export const FundingRate = () => {
     const {state} = useGlobalStore()
     const isMountRef = useRef(false);
     const {startWebsocket} = useExchange()
@@ -18,6 +30,37 @@ export const FundingFeeSummary = () => {
     const binanceCoinMfundinfFeeInfoMapRef = useRef<Map<string, IFundingFeeInfo>>(new Map())
     const [fundingFeeTopData, setFundingFeeTopData] = useState<IFundingFeeInfo[]>([])
     const [fundingFeeBottomData, setFundingFeeBottomData] = useState<IFundingFeeInfo[]>([])
+
+    const columns: ColumnsType<DataType> = [
+        {
+            title: '코인',
+            className: 'symbol-column',
+            dataIndex: 'fundingFeeInfo',
+            align: 'left',
+            render: (fundingFeeInfo) => <CoinTitle fundingFeeInfo={fundingFeeInfo}/>,
+        },
+        {
+            title: <ExchangeTitle exchange={EXCHANGE.BINANCE} postfix={`USDⓈ-M`}/>,
+            className: 'funding-rate-column',
+            dataIndex: 'fundingFeeInfo',            
+            align: 'right',
+            render: (fundingFeeInfo) => <FundingRateComp fundingFeeInfo={fundingFeeInfo} />,
+        },
+        {
+            title: <ExchangeTitle exchange={EXCHANGE.BINANCE} postfix={`COIN-M`}/>,
+            className: 'funding-rate-column',
+            dataIndex: 'fundingFeeInfo',            
+            align: 'right',
+            render: (fundingFeeInfo) => <FundingRateComp fundingFeeInfo={fundingFeeInfo} />,
+        },
+        {
+            title: <ExchangeTitle exchange={EXCHANGE.BYBIT} postfix={"Perpetual"}/>,
+            className: 'funding-rate-column',
+            dataIndex: 'fundingFeeInfo',            
+            align: 'right',
+            render: (fundingFeeInfo) => <FundingRateComp fundingFeeInfo={fundingFeeInfo} />,
+        },
+    ];
 
     useEffect(() => {
         if (isMountRef.current === true) {return}
@@ -76,26 +119,24 @@ export const FundingFeeSummary = () => {
         wsRef.current.set(WS_TYPE.BINANCE_COIN_M_FUTURE_MARKET_PRICE, coinMFutureMarketPriceWs);
     }
     return (
-        <div>
-            <div>
-            <p>Top</p>
-            {
-                
-                fundingFeeTopData.map((item: IFundingFeeInfo, index: any) => (
-                    <p key={index}>{item.coinPair}: {item.fundingRate}</p>
-                ))
-            }
-            </div>
-            <div>
-            <p>Bottom</p>
-            {
-                fundingFeeBottomData.map((item: IFundingFeeInfo, index: any) => (
-                    <p key={index}>{item.coinPair}: {item.fundingRate}</p>
-                ))
-            }
-            </div>
-        </div>
+        <Card
+            bordered={false} 
+            title="Funding Rate" 
+            extra={<a href="#">More</a>} 
+            style={{flex: 1, display: "flex", flexDirection: "column", width: "100%", height: "100%", margin: 0, padding: 0}}
+            headStyle={{backgroundColor: "#001529", color: "whitesmoke", margin: 0}}
+        >
+            <Table
+                columns={columns}
+                // dataSource={rawData}
+                bordered
+                pagination={false}
+                // scroll={{x: undefined, y: "auto" }} 
+                size={"small"}
+                style={{flex: 1, padding: 0, margin: 0}}
+            />
+        </Card>
     )
 };
 
-export default FundingFeeSummary;
+export default FundingRate;

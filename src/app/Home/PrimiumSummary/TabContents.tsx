@@ -1,9 +1,10 @@
 "use client"
 
+import _ from "lodash"
 import { CURRENCY_SITE_TYPE, EXCHANGE, MARKET_CURRENCY } from '@/config/enum';
-import { Avatar, Row, Col, Typography, Table } from 'antd';
+import { Table } from 'antd';
 import { ColumnsType } from 'antd/es/table';
-import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
+import React, { memo, useEffect, useRef, useState } from 'react';
 import './PrimiumSummaryStyle.css'
 import { IAggTradeInfo } from '@/config/interface';
 import { useGlobalStore } from '@/app/hook/useGlobalStore';
@@ -13,8 +14,6 @@ import { PrimiumComp } from '@/app/home/PrimiumSummary/PrimiumComp';
 import PriceChangeComp from '@/app/home/PrimiumSummary/PriceChangeComp';
 import ExchangeTitle from '@/app/components/ExchangeTitle';
 import MiniChart from '@/app/components/TradingViewWidget/MiniChart';
-import AdVancedRealTimeChart from '@/app/components/TradingViewWidget/AdVancedRealTimeChart';
-import { AdvancedRealTimeChartProps } from 'react-ts-tradingview-widgets';
 
 interface DataType {
     key: string;
