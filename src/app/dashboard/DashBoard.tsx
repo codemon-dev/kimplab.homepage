@@ -57,12 +57,12 @@ export default function DashBoard() {
                     <Row gutter={[4, 8]} justify="center" align="top" style={{marginBottom: "8px"}}>
                         <Col flex="1 1 600px">
                             <div style={{padding: "0px 4px", margin: 0, height: "486px"}}>                            
-                                <FundingRate />
+                                <Marketcap />
                             </div>
                         </Col>                        
                         <Col flex="1 1 600px">
                             <div style={{display: "flex", padding: "0px 4px", margin: 0, height: "486px"}}>
-                                <Marketcap />
+                                <FundingRate />
                             </div>
                         </Col>
                     </Row> 
